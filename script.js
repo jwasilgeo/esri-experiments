@@ -1,25 +1,38 @@
 require([
-    "esri/Color",
-    "esri/map",
-    "esri/layers/FeatureLayer",
-    "esri/geometry/geometryEngineAsync",
-    "esri/geometry/Polyline",
-    "esri/graphic",
-    "esri/symbols/SimpleLineSymbol",
-    "esri/symbols/SimpleMarkerSymbol",
+    'esri/map',
+    'esri/layers/FeatureLayer',
+    'esri/geometry/geometryEngineAsync',
+    'esri/geometry/Polyline',
+    'esri/graphic',
 
-    "dojo/domReady!"
+    'esri/Color',
+    'esri/renderers/SimpleRenderer',
+    'esri/symbols/SimpleFillSymbol',
+    'esri/symbols/SimpleLineSymbol',
+    'esri/symbols/SimpleMarkerSymbol',
+
+    'dojo/domReady!'
 ], function(
-    Color, Map, FeatureLayer, geometryEngineAsync, Polyline, Graphic, SimpleLineSymbol, SimpleMarkerSymbol
+    Map, FeatureLayer, geometryEngineAsync, Polyline, Graphic,
+    Color, SimpleRenderer, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol
 ) {
-    var map = new Map("map", {
-        basemap: "satellite",
+    var map = new Map('map', {
+        basemap: 'dark-gray',
         center: [0, 0],
         zoom: 4
     });
 
-    // Carbon storage of trees in Warren Wilson College.
-    var featureLayer = new FeatureLayer("//services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/World_Continents/FeatureServer/0");
+    var featureLayer = new FeatureLayer('//services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/World_Continents/FeatureServer/0');
+
+    var symbol = new SimpleFillSymbol()
+        .setColor(null)
+        .setOutline(new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([100, 0, 255]), 2));
+    var renderer = new SimpleRenderer(symbol);
+    featureLayer.setRenderer(renderer);
+
+    /*featureLayer.on('load', function() {
+        document.getElementsByTagName('body')[0].style.backgroundImage = 'none';
+    });*/
 
     map.addLayer(featureLayer);
 
@@ -33,7 +46,7 @@ require([
             map.graphics.clear();
 
             if (vertexInfos.length === 2) {
-                // sort by vertex index for consistent "direction"
+                // sort by vertex index for consistent 'direction'
                 vertexInfos.sort(function(o1, o2) {
                     return o1.vertexIndex - o2.vertexIndex;
                 });
@@ -52,10 +65,14 @@ require([
                 map.graphics.add(new Graphic(coordinate1, pointSymbol));
                 pointSymbol.setColor(new Color([200, 50, 200]));
                 map.graphics.add(new Graphic(coordinate2, pointSymbol));
-                
+
                 geometryEngineAsync.rotate(coastline, -90).then(function(perpendicularCoastline) {
-                // geometryEngineAsync.rotate(coastline, -90, e.mapPoint).then(function(perpendicularCoastline) {
-                    // perpendicularCoastline.setPoint(0, 0, perpendicularCoastline.getPoint(0, 1));
+                    // geometryEngineAsync.rotate(coastline, -90, e.mapPoint).then(function(perpendicularCoastline) {
+
+                    // var wrapAroundPoint = perpendicularCoastline.getPoint(0, 0);
+                    // wrapAroundPoint.setLongitude(wrapAroundPoint.getLongitude() + 360);
+                    // wrapAroundPoint.setLatitude(wrapAroundPoint.getLatitude() + 180);
+                    // perpendicularCoastline.setPoint(0, 0, wrapAroundPoint);
 
                     lineSymbol.setColor(new Color([0, 200, 0, 1]));
                     map.graphics.add(new Graphic(perpendicularCoastline, lineSymbol));
