@@ -1,6 +1,9 @@
+var map;
 require([
     'esri/map',
     'esri/layers/FeatureLayer',
+
+    /*'esri/geometry/Extent',*/
     'esri/geometry/geometryEngineAsync',
     'esri/geometry/Polyline',
     'esri/graphic',
@@ -11,15 +14,29 @@ require([
     'esri/symbols/SimpleLineSymbol',
     'esri/symbols/SimpleMarkerSymbol',
 
+    'esri/urlUtils',
+
     'dojo/domReady!'
 ], function(
-    Map, FeatureLayer, geometryEngineAsync, Polyline, Graphic,
-    Color, SimpleRenderer, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol
+    Map, FeatureLayer,
+    /*Extent, */geometryEngineAsync, Polyline, Graphic,
+    Color, SimpleRenderer, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol,
+    urlUtils
 ) {
-    var map = new Map('map', {
+    map = new Map('map', {
         basemap: 'dark-gray',
         center: [0, 0],
-        zoom: 4
+        zoom: 3/*,
+        extent: new Extent({
+            "xmin": -11633104.208774451,
+            "ymin": -9343662.337577458,
+            "xmax": 11633104.208774451,
+            "ymax": 9343662.337577458,
+            "spatialReference": {
+                "wkid": 3857
+            }
+        }),
+        wrapAround180: true*/
     });
 
     var featureLayer = new FeatureLayer('//services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/World_Continents/FeatureServer/0');
@@ -35,6 +52,9 @@ require([
     });*/
 
     map.addLayer(featureLayer);
+
+    var urlQuery = urlUtils.urlToObject(document.location.href).query;
+    var debug = urlQuery !== null && typeof urlQuery === 'object' && !!urlQuery.debug;
 
     var pointSymbol = new SimpleMarkerSymbol();
 
@@ -54,17 +74,19 @@ require([
                 var coordinate1 = vertexInfos[0].coordinate;
                 var coordinate2 = vertexInfos[1].coordinate;
 
-
                 var coastline = new Polyline(coordinate1.spatialReference);
                 coastline.addPath([coordinate1, coordinate2]);
 
-                lineSymbol.setColor(new Color([200, 0, 0, 1]));
-                map.graphics.add(new Graphic(coastline, lineSymbol));
+                if (debug) {
+                    lineSymbol.setColor(new Color([200, 0, 0, 1]));
+                    map.graphics.add(new Graphic(coastline, lineSymbol));
 
-                pointSymbol.setColor(new Color([255, 200, 0]));
-                map.graphics.add(new Graphic(coordinate1, pointSymbol));
-                pointSymbol.setColor(new Color([200, 50, 200]));
-                map.graphics.add(new Graphic(coordinate2, pointSymbol));
+                    pointSymbol.setColor(new Color([255, 200, 0]));
+                    map.graphics.add(new Graphic(coordinate1, pointSymbol));
+
+                    pointSymbol.setColor(new Color([200, 50, 200]));
+                    map.graphics.add(new Graphic(coordinate2, pointSymbol));
+                }
 
                 geometryEngineAsync.rotate(coastline, -90).then(function(perpendicularCoastline) {
                     // geometryEngineAsync.rotate(coastline, -90, e.mapPoint).then(function(perpendicularCoastline) {
@@ -74,14 +96,16 @@ require([
                     // wrapAroundPoint.setLatitude(wrapAroundPoint.getLatitude() + 180);
                     // perpendicularCoastline.setPoint(0, 0, wrapAroundPoint);
 
-                    lineSymbol.setColor(new Color([0, 200, 0, 1]));
-                    map.graphics.add(new Graphic(perpendicularCoastline, lineSymbol));
+                    if (debug) {
+                        lineSymbol.setColor(new Color([0, 200, 0, 1]));
+                        map.graphics.add(new Graphic(perpendicularCoastline, lineSymbol));
 
+                        pointSymbol.setColor(new Color([255, 200, 0]));
+                        map.graphics.add(new Graphic(perpendicularCoastline.getPoint(0, 0), pointSymbol));
 
-                    pointSymbol.setColor(new Color([255, 200, 0]));
-                    map.graphics.add(new Graphic(perpendicularCoastline.getPoint(0, 0), pointSymbol));
-                    pointSymbol.setColor(new Color([200, 50, 200]));
-                    map.graphics.add(new Graphic(perpendicularCoastline.getPoint(0, 1), pointSymbol));
+                        pointSymbol.setColor(new Color([200, 50, 200]));
+                        map.graphics.add(new Graphic(perpendicularCoastline.getPoint(0, 1), pointSymbol));
+                    }
 
                     // TODO:
                     // start/end the perpendicular line to wrap all the way around the world
