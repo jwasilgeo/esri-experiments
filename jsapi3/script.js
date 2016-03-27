@@ -85,6 +85,7 @@ require([
                 // wrapAroundPoint.setLatitude(wrapAroundPoint.getLatitude() + 90);
                 coastline.setPoint(0, 1, wrapAroundPoint);
 
+                // https://gist.github.com/conorbuck/2606166
                 var angleDeg = Math.atan2(coordinate2.getLatitude() - coordinate1.getLatitude(), coordinate2.getLongitude() - coordinate1.getLongitude()) * 180 / Math.PI;
                 console.log(angleDeg);
 
