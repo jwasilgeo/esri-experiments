@@ -35,28 +35,50 @@ require([
     view = new SceneView({
         container: 'viewDiv',
         map: map,
-        // scale: 50000000,
         center: [0, 0],
         zoom: 4.5
     });
 
     var layerView = null;
-    var unionGeom = null;
+    var unionGeom = true; // TODO: return to falsy when/if the uioned geoms are still needed
 
     view.on('click', function(evt) {
+        handleMouseInteraction(evt.mapPoint);
+    });
+
+    // simulate a view 'mouse-move' listener
+    view.container.onmousemove = function(mouseEvt) {
+        // convert from screen to view coordinates
+        view.hitTest(mouseEvt.layerX, mouseEvt.layerY).then(function(evt) {
+            /*if (evt.graphic) {
+                console.log(evt);
+            }*/
+            if (evt.mapPoint) {
+                handleMouseInteraction(evt.mapPoint);
+            }
+        });
+    };
+
+    // github.com/chrisveness/geodesy
+    function calculateGeodesyMethod(esriPointA, esriPointB, geodesyMethodName) {
+        var geodesyPointA = new LatLon(esriPointA.latitude, esriPointA.longitude);
+        var geodesyPointB = new LatLon(esriPointB.latitude, esriPointB.longitude);
+        return geodesyPointA[geodesyMethodName](geodesyPointB);
+    }
+
+    function handleMouseInteraction(mapPoint) {
+        // establish the layerView (once) before attempting to do any analysis
         if (!layerView) {
             view.getLayerView(featureLayer).then(function(layerViewResults) {
                 layerView = layerViewResults;
-                checkAnalysisDependencies(layerView, evt.mapPoint);
+                checkAnalysisDependencies(layerView, mapPoint);
             });
         } else {
-            checkAnalysisDependencies(layerView, evt.mapPoint);
+            checkAnalysisDependencies(layerView, mapPoint);
         }
-    });
+    }
 
     function checkAnalysisDependencies(layerView, mapPoint) {
-        graphicsLayer.clear();
-
         var canvas3DGraphics = layerView.getCanvas3DGraphics();
 
         var geoms = Object.keys(canvas3DGraphics).map(function(key) {
@@ -66,7 +88,7 @@ require([
         if (!unionGeom) {
             unionGeom = geometryEngineAsync.union(geoms).then(function(geoms) {
                 unionGeom = geoms;
-                
+
                 console.info(0);
 
                 performAnalysis(canvas3DGraphics, mapPoint, unionGeom);
@@ -76,7 +98,7 @@ require([
         }
     }
 
-    function performAnalysis(canvas3DGraphics, mapPoint) {
+    function performAnalysis(canvas3DGraphics, mapPoint /*, unionGeom*/ ) {
         var filteredIndices = Object.keys(canvas3DGraphics).filter(function(key) {
             return geometryEngine.intersects(canvas3DGraphics[key].graphic.geometry, mapPoint);
         });
@@ -88,7 +110,7 @@ require([
                 console.info(1);
 
                 if (vertexInfos.length === 2) {
-                    // sort by vertex index for consistent coastline direction
+                    // Sort by vertex index for consistent coastline vertex order.
                     vertexInfos.sort(function(o1, o2) {
                         return o1.vertexIndex - o2.vertexIndex;
                     });
@@ -96,12 +118,17 @@ require([
                     var startPoint = vertexInfos[0].coordinate;
                     var endPoint = vertexInfos[1].coordinate;
 
+                    // Use Geodesy lib to calculate the midpoint location.
+                    var geodesyMidPoint = calculateGeodesyMethod(startPoint, endPoint, 'midpointTo');
+
+                    // Convert Geodesy result to Esri point geometry.
                     var midPoint = new Point({
-                        x: (startPoint.x + endPoint.x) / 2,
-                        y: (startPoint.y + endPoint.y) / 2,
+                        longitude: geodesyMidPoint.lon,
+                        latitude: geodesyMidPoint.lat,
                         spatialReference: startPoint.spatialReference
                     });
 
+                    // Create a line at the midpoint and wrap it around the Earth.
                     var wrapAroundLine = new Polyline({
                         paths: [
                             [
@@ -111,20 +138,13 @@ require([
                         ],
                         spatialReference: startPoint.spatialReference
                     });
-
                     var wrapAroundPoint = wrapAroundLine.getPoint(0, 1);
                     wrapAroundPoint.longitude += 360;
                     wrapAroundLine.setPoint(0, 1, wrapAroundPoint);
 
-                    graphicsLayer.add(new Graphic({
-                        geometry: wrapAroundLine,
-                        symbol: new SimpleLineSymbol({
-                            color: [200, 0, 0],
-                            width: 6
-                        })
-                    }));
+                    graphicsLayer.clear();
 
-                    graphicsLayer.add(new Graphic({
+                    /*graphicsLayer.add(new Graphic({
                         geometry: startPoint,
                         symbol: new SimpleMarkerSymbol({
                             color: [255, 200, 0]
@@ -143,20 +163,20 @@ require([
                         symbol: new SimpleMarkerSymbol({
                             color: [200, 50, 200]
                         })
-                    }));
+                    }));*/
+                    
 
-                    // https://github.com/chrisveness/geodesy
-                    // calculate bearing from coastline midpoint to 2nd point
-                    // use bearing to determine the perpendicular direction from the coast
-                    var geodesyPoint1 = new LatLon(midPoint.latitude, midPoint.longitude);
-                    var geodesyPoint2 = new LatLon(endPoint.latitude, endPoint.longitude);
-                    var bearing = geodesyPoint1.bearingTo(geodesyPoint2);
-                    geometryEngineAsync.rotate(wrapAroundLine, (180 - bearing), wrapAroundLine.getPoint(0, 0)).then(function(rotLine) {
+                    // Calculate bearing from coastline midpoint to end point and then
+                    //  use bearing help to determine the perpendicular direction from the coast.
+                    var bearing = calculateGeodesyMethod(midPoint, endPoint, 'bearingTo');
+
+                    // Rotate the wrapped around line to be perpendicular to the coastline.
+                    geometryEngineAsync.rotate(wrapAroundLine, (180 - bearing), wrapAroundLine.getPoint(0, 0)).then(function(rotatedLine) {
 
                         console.info(2);
 
                         var tooLongGraphic = new Graphic({
-                            geometry: rotLine,
+                            geometry: rotatedLine,
                             symbol: new SimpleLineSymbol({
                                 color: [0, 0, 200],
                                 width: 6
@@ -164,12 +184,14 @@ require([
                         });
                         graphicsLayer.add(tooLongGraphic);
 
-                        geometryEngineAsync.difference(rotLine, unionGeom).then(function(leftoversGeom) {
+                        return;
+                        // Split the wrapped around and rotated line by any intersecting continents.
+                        geometryEngineAsync.difference(rotatedLine, unionGeom).then(function(leftoversGeom) {
 
                             console.info(3);
 
-                            // only keep the first difference line segment,
-                            // which whould be the path across the ocean to the opposing coast
+                            // Only keep the first difference line segment,
+                            //  which whould be the path across the ocean to the opposing coast.
                             leftoversGeom.paths = [leftoversGeom.paths[0]];
 
                             graphicsLayer.add(new Graphic({
