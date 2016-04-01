@@ -6,6 +6,7 @@ require([
     /*'esri/geometry/Extent',*/
     'esri/geometry/geometryEngineAsync',
     'esri/geometry/mathUtils',
+    'esri/geometry/Point',
     'esri/geometry/Polyline',
     'esri/graphic',
 
@@ -21,7 +22,7 @@ require([
 ], function(
     Map, FeatureLayer,
     /*Extent, */
-    geometryEngineAsync, mathUtils, Polyline, Graphic,
+    geometryEngineAsync, mathUtils, Point, Polyline, Graphic,
     Color, SimpleRenderer, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol,
     urlUtils
 ) {
@@ -64,6 +65,13 @@ require([
     var lineSymbol = new SimpleLineSymbol();
     lineSymbol.setWidth(3);
 
+    // github.com/chrisveness/geodesy
+    function calculateGeodesyMethod(esriPointA, esriPointB, geodesyMethodName) {
+        var geodesyPointA = new LatLon(esriPointA.getLatitude(), esriPointA.getLongitude());
+        var geodesyPointB = new LatLon(esriPointB.getLatitude(), esriPointB.getLongitude());
+        return geodesyPointA[geodesyMethodName](geodesyPointB);
+    }
+
     featureLayer.on('mouse-over, mouse-out', function(e) {
         geometryEngineAsync.nearestVertices(e.graphic.geometry, e.mapPoint, 5000000, 2).then(function(vertexInfos) {
             map.graphics.clear();
@@ -74,112 +82,59 @@ require([
                     return o1.vertexIndex - o2.vertexIndex;
                 });
 
-                var coordinate1 = vertexInfos[0].coordinate;
-                var coordinate2 = vertexInfos[1].coordinate;
+                var startPoint = vertexInfos[0].coordinate;
+                var endPoint = vertexInfos[1].coordinate;
 
-                var coastline = new Polyline(coordinate1.spatialReference);
-                coastline.addPath([coordinate1, coordinate2]);
+                // Use Geodesy lib to calculate the midpoint location.
+                var geodesyMidPoint = calculateGeodesyMethod(startPoint, endPoint, 'midpointTo');
 
-                var wrapAroundPoint = coastline.getPoint(0, 0);
-                wrapAroundPoint.setLongitude(wrapAroundPoint.getLongitude() + 90);
-                // wrapAroundPoint.setLatitude(wrapAroundPoint.getLatitude() + 90);
-                coastline.setPoint(0, 1, wrapAroundPoint);
+                // Convert Geodesy result to Esri point geometry.
+                var midPoint = new Point(geodesyMidPoint.lon, geodesyMidPoint.lat);
 
-                // https://gist.github.com/conorbuck/2606166
-                var angleDeg = Math.atan2(coordinate2.getLatitude() - coordinate1.getLatitude(), coordinate2.getLongitude() - coordinate1.getLongitude()) * 180 / Math.PI;
-                console.log(angleDeg);
+                // Calculate compass bearing from coastline midpoint to end point, and then
+                //  use that value to help determine the perpendicular direction from the coast.
+                var compassBearing = calculateGeodesyMethod(midPoint, endPoint, 'bearingTo') - 90;
 
+                // Convert the bearing to latitude values constrained to a range of +/-90.
+                var rotationLatitude = 0;
 
-
-                if (debug) {
-                    lineSymbol.setColor(new Color([200, 0, 0, 1]));
-                    map.graphics.add(new Graphic(coastline, lineSymbol));
-
-                    pointSymbol.setColor(new Color([255, 200, 0]));
-                    map.graphics.add(new Graphic(coordinate1, pointSymbol));
-
-                    pointSymbol.setColor(new Color([200, 50, 200]));
-                    map.graphics.add(new Graphic(coordinate2, pointSymbol));
-                }
-                geometryEngineAsync.rotate(coastline, angleDeg + 90, coastline.getPoint(0, 0)).then(function(rotLine) {
-                    if (debug) {
-                        lineSymbol.setColor(new Color([0, 0, 200, 1]));
-                        map.graphics.add(new Graphic(rotLine, lineSymbol));
+                // Create a line at the midpoint and wrap it around the Earth.
+                var wrapAroundLine = new Polyline({
+                    paths: [
+                        [
+                            [midPoint.getLongitude(), midPoint.getLatitude()],
+                            [midPoint.getLongitude() + 90, rotationLatitude],
+                            [midPoint.getLongitude() + 180, -midPoint.getLatitude()],
+                            [midPoint.getLongitude() + 270, -rotationLatitude],
+                            [midPoint.getLongitude() + 360, midPoint.getLatitude()]
+                        ],
+                    ],
+                    spatialReference: {
+                        wkid: 4326
                     }
-
-                    // geometryEngineAsync.intersects(rotLine, featureLayer.graphics)
-
-                    geometryEngineAsync.geodesicDensify(rotLine, 10000).then(function(gdLine) {
-                        if (debug) {
-                            lineSymbol.setColor(new Color([170, 170, 0, 1]));
-                            map.graphics.add(new Graphic(gdLine, lineSymbol));
-                        }
-
-                        // var angleDeg = Math.atan2(coordinate2.getLatitude() - coordinate1.getLatitude(), coordinate2.getLongitude() - coordinate1.getLongitude()) * 180 / Math.PI;
-                        // console.log(angleDeg);
-
-                        // geometryEngineAsync.rotate(gdLine, angleDeg - 90, gdLine.getPoint(0, 0)).then(function(pdLine) {
-                        //     if (debug) {
-                        //         lineSymbol.setColor(new Color([200, 255, 50, 1]));
-                        //         map.graphics.add(new Graphic(pdLine, lineSymbol));
-                        //     }
-                        //     return;
-                        //     geometryEngineAsync.geodesicDensify(pdLine, 10000).then(function(finalLine) {
-                        //         if (debug) {
-                        //             lineSymbol.setColor(new Color([50, 255, 50, 1]));
-                        //             map.graphics.add(new Graphic(finalLine, lineSymbol));
-                        //         }
-                        //     });
-                        // });
-
-                    });
                 });
-                return;
-                geometryEngineAsync.rotate(coastline, -90).then(function(perpendicularCoastline) {
-                    // geometryEngineAsync.rotate(coastline, -90, e.mapPoint).then(function(perpendicularCoastline) {
+
+
+                geometryEngineAsync.geodesicDensify(wrapAroundLine, 10000).then(function(gdLine) {
 
                     if (debug) {
-                        lineSymbol.setColor(new Color([0, 200, 0, 1]));
-                        map.graphics.add(new Graphic(perpendicularCoastline, lineSymbol));
+                        lineSymbol.setColor(new Color([255, 255, 100]));
+                        map.graphics.add(new Graphic(wrapAroundLine, lineSymbol));
 
-                        pointSymbol.setColor(new Color([255, 200, 0]));
-                        map.graphics.add(new Graphic(perpendicularCoastline.getPoint(0, 0), pointSymbol));
+                        lineSymbol.setColor(new Color([200, 200, 200]));
+                        map.graphics.add(new Graphic(gdLine, lineSymbol));
 
-                        pointSymbol.setColor(new Color([200, 50, 200]));
-                        map.graphics.add(new Graphic(perpendicularCoastline.getPoint(0, 1), pointSymbol));
+                        pointSymbol.setColor(new Color([255, 0, 0]));
+                        map.graphics.add(new Graphic(startPoint, pointSymbol));
+
+                        pointSymbol.setColor(new Color([255, 255, 0]));
+                        map.graphics.add(new Graphic(midPoint, pointSymbol));
+
+                        pointSymbol.setColor(new Color([0, 255, 0]));
+                        map.graphics.add(new Graphic(endPoint, pointSymbol));
                     }
-
-                    return;
-                    var wrapAroundPoint = perpendicularCoastline.getPoint(0, 0);
-                    wrapAroundPoint.setLongitude(wrapAroundPoint.getLongitude() + 360);
-                    // wrapAroundPoint.setLatitude(wrapAroundPoint.getLatitude() + 180);
-                    perpendicularCoastline.setPoint(0, 0, wrapAroundPoint);
-
-                    if (debug) {
-                        lineSymbol.setColor(new Color([0, 0, 200, 1]));
-                        map.graphics.add(new Graphic(perpendicularCoastline, lineSymbol));
-
-                        pointSymbol.setColor(new Color([255, 200, 0]));
-                        map.graphics.add(new Graphic(perpendicularCoastline.getPoint(0, 0), pointSymbol));
-
-                        pointSymbol.setColor(new Color([200, 50, 200]));
-                        map.graphics.add(new Graphic(perpendicularCoastline.getPoint(0, 1), pointSymbol));
-                    }
-
-                    // TODO:
-                    // start/end the perpendicular line to wrap all the way around the world
-                    // find out which opposing coastline it intersects
-                    /*geometryEngineAsync.geodesicDensify(perpendicularCoastline, 10000).then(function(response) {
-                        //response is the densified version of lineGeom
-                        lineSymbol.setColor(new Color([0,200,200]));
-                            map.graphics.add(new Graphic(response, lineSymbol));
-
-                        // geometryEngineAsync.rotate(response, -90).then(function(perp) {
-                        //     map.graphics.add(new Graphic(perp, lineSymbol));
-
-                        // });
-                    });*/
                 });
+
             }
 
         });
