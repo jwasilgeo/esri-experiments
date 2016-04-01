@@ -138,7 +138,7 @@ require([
                     var compassBearing = calculateGeodesyMethod(midPoint, endPoint, 'bearingTo') - 90;
 
                     // Convert the bearing to latitude values constrained to a range of +/-90.
-                    var rotationLatitude = 0;
+                    var rotationLatitude = bearingToLatitude(compassBearing);
 
                     // Create a line at the midpoint and wrap it around the Earth.
                     var wrapAroundLine = new Polyline({
@@ -236,4 +236,15 @@ require([
 
     }
 
+    function bearingToLatitude(bearing) {
+        // normalize 0 - 359
+        bearing = bearing % 360;
+        // flip sign if > 180
+        // when normalized bearings > 180 will be "upside down"
+        var sign = 1 - (2 * Math.floor(bearing / 180));
+        // normalize 0 - 179
+        bearing = bearing % 180;
+        // find difference from 90
+        return sign * (90 - bearing);
+    }
 });
