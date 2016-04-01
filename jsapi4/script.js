@@ -43,21 +43,26 @@ require([
     var unionGeom = true; // TODO: return to falsy when/if the uioned geoms are still needed
 
     view.on('click', function(evt) {
-        handleMouseInteraction(evt.mapPoint);
+        checkLayerView(evt.mapPoint);
     });
 
     // simulate a view 'mouse-move' listener
-    view.container.onmousemove = function(mouseEvt) {
+    // view.container.addEventListener('mousemove', handleMouseMove);
+
+    function handleMouseMove(mouseEvt) {
         // convert from screen to view coordinates
         view.hitTest(mouseEvt.layerX, mouseEvt.layerY).then(function(evt) {
+            // a hitTest appears to fire on a 'click' as well
+
             /*if (evt.graphic) {
                 console.log(evt);
             }*/
+
             if (evt.mapPoint) {
-                handleMouseInteraction(evt.mapPoint);
+                checkLayerView(evt.mapPoint);
             }
         });
-    };
+    }
 
     // github.com/chrisveness/geodesy
     function calculateGeodesyMethod(esriPointA, esriPointB, geodesyMethodName) {
@@ -66,7 +71,7 @@ require([
         return geodesyPointA[geodesyMethodName](geodesyPointB);
     }
 
-    function handleMouseInteraction(mapPoint) {
+    function checkLayerView(mapPoint) {
         // establish the layerView (once) before attempting to do any analysis
         if (!layerView) {
             view.getLayerView(featureLayer).then(function(layerViewResults) {
@@ -89,7 +94,7 @@ require([
             unionGeom = geometryEngineAsync.union(geoms).then(function(geoms) {
                 unionGeom = geoms;
 
-                console.info(0);
+                console.info('union preprocessing complete');
 
                 performAnalysis(canvas3DGraphics, mapPoint, unionGeom);
             });
@@ -105,9 +110,9 @@ require([
 
         if (filteredIndices.length) {
             var polygonToSearch = canvas3DGraphics[filteredIndices[0]].graphic.geometry;
-            geometryEngineAsync.nearestVertices(polygonToSearch, mapPoint, 5000000, 2).then(function(vertexInfos) {
+            geometryEngineAsync.nearestVertices(polygonToSearch, mapPoint, 500000, 2).then(function(vertexInfos) {
 
-                console.info(1);
+                console.info('nearest coastline vertices found');
 
                 if (vertexInfos.length === 2) {
                     // Sort by vertex index for consistent coastline vertex order.
@@ -128,67 +133,77 @@ require([
                         spatialReference: startPoint.spatialReference
                     });
 
+                    // Calculate compass bearing from coastline midpoint to end point, and then
+                    //  use that value to help determine the perpendicular direction from the coast.
+                    var compassBearing = calculateGeodesyMethod(midPoint, endPoint, 'bearingTo') - 90;
+
+                    // Convert the bearing to latitude values constrained to a range of +/-90.
+                    var rotationLatitude = 0;
+
                     // Create a line at the midpoint and wrap it around the Earth.
                     var wrapAroundLine = new Polyline({
                         paths: [
                             [
-                                [midPoint.x, midPoint.y],
-                                [midPoint.x, midPoint.y]
-                            ]
+                                [midPoint.longitude, midPoint.latitude],
+                                [midPoint.longitude + 90, rotationLatitude],
+                                [midPoint.longitude + 180, -midPoint.latitude],
+                                [midPoint.longitude + 270, -rotationLatitude],
+                                [midPoint.longitude + 360, midPoint.latitude]
+                            ],
                         ],
-                        spatialReference: startPoint.spatialReference
+                        spatialReference: {
+                            wkid: 4326
+                        }
                     });
-                    var wrapAroundPoint = wrapAroundLine.getPoint(0, 1);
-                    wrapAroundPoint.longitude += 360;
-                    wrapAroundLine.setPoint(0, 1, wrapAroundPoint);
 
                     graphicsLayer.clear();
 
-                    /*graphicsLayer.add(new Graphic({
-                        geometry: startPoint,
-                        symbol: new SimpleMarkerSymbol({
-                            color: [255, 200, 0]
-                        })
-                    }));
+                    // Geodetically densify the wrap around line.
 
-                    graphicsLayer.add(new Graphic({
-                        geometry: midPoint,
-                        symbol: new SimpleMarkerSymbol({
-                            color: [100, 200, 0]
-                        })
-                    }));
-
-                    graphicsLayer.add(new Graphic({
-                        geometry: endPoint,
-                        symbol: new SimpleMarkerSymbol({
-                            color: [200, 50, 200]
-                        })
-                    }));*/
-                    
-
-                    // Calculate bearing from coastline midpoint to end point and then
-                    //  use bearing help to determine the perpendicular direction from the coast.
-                    var bearing = calculateGeodesyMethod(midPoint, endPoint, 'bearingTo');
-
-                    // Rotate the wrapped around line to be perpendicular to the coastline.
-                    geometryEngineAsync.rotate(wrapAroundLine, (180 - bearing), wrapAroundLine.getPoint(0, 0)).then(function(rotatedLine) {
-
-                        console.info(2);
-
-                        var tooLongGraphic = new Graphic({
-                            geometry: rotatedLine,
+                    geometryEngineAsync.geodesicDensify(wrapAroundLine, 10000).then(function(gdLine) {
+                        graphicsLayer.add(new Graphic({
+                            geometry: wrapAroundLine,
                             symbol: new SimpleLineSymbol({
-                                color: [0, 0, 200],
+                                color: [255, 255, 100],
                                 width: 6
                             })
-                        });
-                        graphicsLayer.add(tooLongGraphic);
+                        }));
+
+                        graphicsLayer.add(new Graphic({
+                            geometry: gdLine,
+                            symbol: new SimpleLineSymbol({
+                                color: [200, 200, 200],
+                                width: 6
+                            })
+                        }));
+
+                        graphicsLayer.add(new Graphic({
+                            geometry: startPoint,
+                            symbol: new SimpleMarkerSymbol({
+                                color: [255, 0, 0]
+                            })
+                        }));
+
+                        graphicsLayer.add(new Graphic({
+                            geometry: midPoint,
+                            symbol: new SimpleMarkerSymbol({
+                                color: [255, 255, 0]
+                            })
+                        }));
+
+                        graphicsLayer.add(new Graphic({
+                            geometry: endPoint,
+                            symbol: new SimpleMarkerSymbol({
+                                color: [0, 255, 0]
+                            })
+                        }));
 
                         return;
+
                         // Split the wrapped around and rotated line by any intersecting continents.
                         geometryEngineAsync.difference(rotatedLine, unionGeom).then(function(leftoversGeom) {
 
-                            console.info(3);
+                            console.info('line differencing complete');
 
                             // Only keep the first difference line segment,
                             //  which whould be the path across the ocean to the opposing coast.
@@ -209,7 +224,7 @@ require([
                                 })
                             }));
 
-                            // graphicsLayer.remove(tooLongGraphic);
+                            // graphicsLayer.remove(gdLineGraphic);
                         });
 
                     });
