@@ -65,21 +65,25 @@ require([
     var lineSymbol = new SimpleLineSymbol();
     lineSymbol.setWidth(3);
 
-    // github.com/chrisveness/geodesy
-    function calculateGeodesyMethod(esriPointA, esriPointB, geodesyMethodName) {
-        var geodesyPointA = new LatLon(esriPointA.getLatitude(), esriPointA.getLongitude());
-        var geodesyPointB = new LatLon(esriPointB.getLatitude(), esriPointB.getLongitude());
-        return geodesyPointA[geodesyMethodName](geodesyPointB);
-    }
+    var vertexIndices = [];
 
     featureLayer.on('mouse-over, mouse-out', function(e) {
         geometryEngineAsync.nearestVertices(e.graphic.geometry, e.mapPoint, 5000000, 2).then(function(vertexInfos) {
-            map.graphics.clear();
+            // Sort by vertex index for consistent 'direction'.
+            vertexInfos.sort(function(o1, o2) {
+                return o1.vertexIndex - o2.vertexIndex;
+            });
 
-            if (vertexInfos.length === 2) {
-                // sort by vertex index for consistent 'direction'
-                vertexInfos.sort(function(o1, o2) {
-                    return o1.vertexIndex - o2.vertexIndex;
+            tempVertexIndices = vertexInfos.filter(function(o) {
+                return o.vertexIndex;
+            });
+
+            var sameVertices = isSameShallowArray(tempVertexIndices, vertexIndices);
+
+            if (vertexInfos.length === 2 && !sameVertices) {
+                // Update vertex tracking array to avoid doing this work again if it's the same as last time.
+                vertexIndices = vertexInfos.map(function(o) {
+                    return o.vertexIndex;
                 });
 
                 var startPoint = vertexInfos[0].coordinate;
@@ -93,20 +97,26 @@ require([
 
                 // Calculate compass bearing from coastline midpoint to end point, and then
                 //  use that value to help determine the perpendicular direction from the coast.
-                var compassBearing = calculateGeodesyMethod(midPoint, endPoint, 'bearingTo') - 90;
+                var coastlineBearing = calculateGeodesyMethod(midPoint, endPoint, 'bearingTo');
+                
+                // Find the perpendicular bearing direction, but constrain between 0 to positive 360.
+                var perpendicularBearing = coastlineBearing > 90 ? coastlineBearing - 90 : coastlineBearing + 270;
 
                 // Convert the bearing to latitude values constrained to a range of +/-90.
-                var rotationLatitude = bearingToLatitude(compassBearing);
+                var rotationLatitude = bearingToLatitude(perpendicularBearing);
+
+                // Determine if the wrap around line should be oriented east or west.
+                var directionToWrap = Math.abs(perpendicularBearing) < 180 ? 1 : -1;
 
                 // Create a line at the midpoint and wrap it around the Earth.
                 var wrapAroundLine = new Polyline({
                     paths: [
                         [
                             [midPoint.getLongitude(), midPoint.getLatitude()],
-                            [midPoint.getLongitude() + 90, rotationLatitude],
-                            [midPoint.getLongitude() + 180, -midPoint.getLatitude()],
-                            [midPoint.getLongitude() + 270, -rotationLatitude],
-                            [midPoint.getLongitude() + 360, midPoint.getLatitude()]
+                            [midPoint.getLongitude() + (directionToWrap * 90), rotationLatitude],
+                            [midPoint.getLongitude() + (directionToWrap * 180), -midPoint.getLatitude()],
+                            [midPoint.getLongitude() + (directionToWrap * 270), -rotationLatitude],
+                            [midPoint.getLongitude() + (directionToWrap * 360), midPoint.getLatitude()]
                         ],
                     ],
                     spatialReference: {
@@ -114,12 +124,12 @@ require([
                     }
                 });
 
-
                 geometryEngineAsync.geodesicDensify(wrapAroundLine, 10000).then(function(gdLine) {
-
                     if (debug) {
-                        lineSymbol.setColor(new Color([255, 255, 100]));
-                        map.graphics.add(new Graphic(wrapAroundLine, lineSymbol));
+                        map.graphics.clear();
+
+                        // lineSymbol.setColor(new Color([255, 255, 100]));
+                        // map.graphics.add(new Graphic(wrapAroundLine, lineSymbol));
 
                         lineSymbol.setColor(new Color([200, 200, 200]));
                         map.graphics.add(new Graphic(gdLine, lineSymbol));
@@ -139,6 +149,20 @@ require([
 
         });
     });
+
+    function isSameShallowArray(arrayA, arrayB) {
+        return arrayA.length === arrayB.length &&
+            arrayA.every(function(element, index) {
+                return element === arrayB[index];
+            });
+    }
+
+    // github.com/chrisveness/geodesy
+    function calculateGeodesyMethod(esriPointA, esriPointB, geodesyMethodName) {
+        var geodesyPointA = new LatLon(esriPointA.getLatitude(), esriPointA.getLongitude());
+        var geodesyPointB = new LatLon(esriPointB.getLatitude(), esriPointB.getLongitude());
+        return geodesyPointA[geodesyMethodName](geodesyPointB);
+    }
 
     function bearingToLatitude(bearing) {
         // normalize 0 - 359

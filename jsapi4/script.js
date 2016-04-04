@@ -41,6 +41,7 @@ require([
 
     var layerView = null;
     var unionGeom = true; // TODO: return to falsy when/if the uioned geoms are still needed
+    var vertexIndices = [];
 
     view.on('click', function(evt) {
         checkLayerView(evt.mapPoint);
@@ -62,13 +63,6 @@ require([
                 checkLayerView(evt.mapPoint);
             }
         });
-    }
-
-    // github.com/chrisveness/geodesy
-    function calculateGeodesyMethod(esriPointA, esriPointB, geodesyMethodName) {
-        var geodesyPointA = new LatLon(esriPointA.latitude, esriPointA.longitude);
-        var geodesyPointB = new LatLon(esriPointB.latitude, esriPointB.longitude);
-        return geodesyPointA[geodesyMethodName](geodesyPointB);
     }
 
     function checkLayerView(mapPoint) {
@@ -111,13 +105,25 @@ require([
         if (filteredIndices.length) {
             var polygonToSearch = canvas3DGraphics[filteredIndices[0]].graphic.geometry;
             geometryEngineAsync.nearestVertices(polygonToSearch, mapPoint, 500000, 2).then(function(vertexInfos) {
-
                 console.info('nearest coastline vertices found');
 
-                if (vertexInfos.length === 2) {
-                    // Sort by vertex index for consistent coastline vertex order.
-                    vertexInfos.sort(function(o1, o2) {
-                        return o1.vertexIndex - o2.vertexIndex;
+                // Sort by vertex index for consistent 'direction'.
+                vertexInfos.sort(function(o1, o2) {
+                    return o1.vertexIndex - o2.vertexIndex;
+                });
+
+                tempVertexIndices = vertexInfos.filter(function(o) {
+                    return o.vertexIndex;
+                });
+
+                var sameVertices = isSameShallowArray(tempVertexIndices, vertexIndices);
+
+                if (vertexInfos.length === 2 && !sameVertices) {
+                    console.info('continuing analysis because nearest coastline vertices are different');
+
+                    // Update vertex tracking array to avoid doing this work again if it's the same as last time.
+                    vertexIndices = vertexInfos.map(function(o) {
+                        return o.vertexIndex;
                     });
 
                     var startPoint = vertexInfos[0].coordinate;
@@ -135,20 +141,26 @@ require([
 
                     // Calculate compass bearing from coastline midpoint to end point, and then
                     //  use that value to help determine the perpendicular direction from the coast.
-                    var compassBearing = calculateGeodesyMethod(midPoint, endPoint, 'bearingTo') - 90;
+                    var coastlineBearing = calculateGeodesyMethod(midPoint, endPoint, 'bearingTo');
+
+                    // Find the perpendicular bearing direction, but constrain between 0 to positive 360.
+                    var perpendicularBearing = coastlineBearing > 90 ? coastlineBearing - 90 : coastlineBearing + 270;
 
                     // Convert the bearing to latitude values constrained to a range of +/-90.
-                    var rotationLatitude = bearingToLatitude(compassBearing);
+                    var rotationLatitude = bearingToLatitude(perpendicularBearing);
+
+                    // Determine if the wrap around line should be oriented east or west.
+                    var directionToWrap = Math.abs(perpendicularBearing) < 180 ? 1 : -1;
 
                     // Create a line at the midpoint and wrap it around the Earth.
                     var wrapAroundLine = new Polyline({
                         paths: [
                             [
                                 [midPoint.longitude, midPoint.latitude],
-                                [midPoint.longitude + 90, rotationLatitude],
-                                [midPoint.longitude + 180, -midPoint.latitude],
-                                [midPoint.longitude + 270, -rotationLatitude],
-                                [midPoint.longitude + 360, midPoint.latitude]
+                                [midPoint.longitude + (directionToWrap * 90), rotationLatitude],
+                                [midPoint.longitude + (directionToWrap * 180), -midPoint.latitude],
+                                [midPoint.longitude + (directionToWrap * 270), -rotationLatitude],
+                                [midPoint.longitude + (directionToWrap * 360), midPoint.latitude]
                             ],
                         ],
                         spatialReference: {
@@ -156,18 +168,18 @@ require([
                         }
                     });
 
-                    graphicsLayer.clear();
 
                     // Geodetically densify the wrap around line.
-
                     geometryEngineAsync.geodesicDensify(wrapAroundLine, 10000).then(function(gdLine) {
-                        graphicsLayer.add(new Graphic({
-                            geometry: wrapAroundLine,
-                            symbol: new SimpleLineSymbol({
-                                color: [255, 255, 100],
-                                width: 6
-                            })
-                        }));
+                        graphicsLayer.clear();
+
+                        // graphicsLayer.add(new Graphic({
+                        //     geometry: wrapAroundLine,
+                        //     symbol: new SimpleLineSymbol({
+                        //         color: [255, 255, 100],
+                        //         width: 6
+                        //     })
+                        // }));
 
                         graphicsLayer.add(new Graphic({
                             geometry: gdLine,
@@ -234,6 +246,20 @@ require([
 
         }
 
+    }
+
+    function isSameShallowArray(arrayA, arrayB) {
+        return arrayA.length === arrayB.length &&
+            arrayA.every(function(element, index) {
+                return element === arrayB[index];
+            });
+    }
+
+    // github.com/chrisveness/geodesy
+    function calculateGeodesyMethod(esriPointA, esriPointB, geodesyMethodName) {
+        var geodesyPointA = new LatLon(esriPointA.latitude, esriPointA.longitude);
+        var geodesyPointB = new LatLon(esriPointB.latitude, esriPointB.longitude);
+        return geodesyPointA[geodesyMethodName](geodesyPointB);
     }
 
     function bearingToLatitude(bearing) {
