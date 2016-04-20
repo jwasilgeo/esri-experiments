@@ -112,7 +112,7 @@ require([
                     return o1.vertexIndex - o2.vertexIndex;
                 });
 
-                tempVertexIndices = vertexInfos.filter(function(o) {
+                tempVertexIndices = vertexInfos.map(function(o) {
                     return o.vertexIndex;
                 });
 
@@ -147,7 +147,10 @@ require([
                     var perpendicularBearing = coastlineBearing > 90 ? coastlineBearing - 90 : coastlineBearing + 270;
 
                     // Convert the bearing to latitude values constrained to a range of +/-90.
-                    var rotationLatitude = bearingToLatitude(perpendicularBearing);
+                    var rotationLatitudeBearing = bearingToLatitude(perpendicularBearing);
+
+                    // Find the rotation coordinate adjustments for the wrap around line vertices at +90 and +270 longitude.
+                    var rotationCoordinates = calculateRotationCoordinates(midPoint.latitude, rotationLatitudeBearing);
 
                     // Determine if the wrap around line should be oriented east or west.
                     var directionToWrap = Math.abs(perpendicularBearing) < 180 ? 1 : -1;
@@ -157,9 +160,9 @@ require([
                         paths: [
                             [
                                 [midPoint.longitude, midPoint.latitude],
-                                [midPoint.longitude + (directionToWrap * 90), rotationLatitude],
+                                [midPoint.longitude + (directionToWrap * 90) + rotationCoordinates.longitude, rotationCoordinates.latitude],
                                 [midPoint.longitude + (directionToWrap * 180), -midPoint.latitude],
-                                [midPoint.longitude + (directionToWrap * 270), -rotationLatitude],
+                                [midPoint.longitude + (directionToWrap * 270) + rotationCoordinates.longitude, -rotationCoordinates.latitude],
                                 [midPoint.longitude + (directionToWrap * 360), midPoint.latitude]
                             ],
                         ],
@@ -173,13 +176,13 @@ require([
                     geometryEngineAsync.geodesicDensify(wrapAroundLine, 10000).then(function(gdLine) {
                         graphicsLayer.clear();
 
-                        // graphicsLayer.add(new Graphic({
-                        //     geometry: wrapAroundLine,
-                        //     symbol: new SimpleLineSymbol({
-                        //         color: [255, 255, 100],
-                        //         width: 6
-                        //     })
-                        // }));
+                        graphicsLayer.add(new Graphic({
+                            geometry: wrapAroundLine,
+                            symbol: new SimpleLineSymbol({
+                                color: [255, 255, 100],
+                                width: 6
+                            })
+                        }));
 
                         graphicsLayer.add(new Graphic({
                             geometry: gdLine,
@@ -272,5 +275,21 @@ require([
         bearing = bearing % 180;
         // find difference from 90
         return sign * (90 - bearing);
+    }
+
+    function calculateRotationCoordinates(initialLatitude, rotationLatitudeBearing) {
+        var latitudeFraction = (initialLatitude / 90);
+
+        var rLatitude = Math.abs((1 - Math.abs(latitudeFraction)) * rotationLatitudeBearing);
+        if (rotationLatitudeBearing < 0) {
+            rLatitude *= -1;
+        }
+
+        var rLongitude = latitudeFraction * rotationLatitudeBearing;
+
+        return {
+            longitude: rLongitude,
+            latitude: rLatitude
+        };
     }
 });

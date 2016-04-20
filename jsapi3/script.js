@@ -74,7 +74,7 @@ require([
                 return o1.vertexIndex - o2.vertexIndex;
             });
 
-            tempVertexIndices = vertexInfos.filter(function(o) {
+            tempVertexIndices = vertexInfos.map(function(o) {
                 return o.vertexIndex;
             });
 
