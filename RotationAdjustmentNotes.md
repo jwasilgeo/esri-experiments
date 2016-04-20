@@ -19,7 +19,8 @@
 
 
 *the adjustments to the next point along the wrap-around line,
- which is initially at: (0 deg lat, +90 deg lon)
+ which is at (+0 deg lat, +90 deg lon) from the initial coastline point
+ and prior to making these "rotation" adjustments
 
 
 
