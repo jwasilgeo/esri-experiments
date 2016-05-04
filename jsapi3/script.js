@@ -15,6 +15,7 @@ require([
     'esri/symbols/SimpleFillSymbol',
     'esri/symbols/SimpleLineSymbol',
     'esri/symbols/SimpleMarkerSymbol',
+    "esri/layers/VectorTileLayer",
 
     'esri/urlUtils',
 
@@ -23,11 +24,15 @@ require([
     Map, FeatureLayer,
     /*Extent, */
     geometryEngineAsync, mathUtils, Point, Polyline, Graphic,
-    Color, SimpleRenderer, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol,
+    Color, SimpleRenderer, SimpleFillSymbol, SimpleLineSymbol,SimpleMarkerSymbol, VectorTileLayer,
     urlUtils
 ) {
-    map = new Map('map', {
-        basemap: 'dark-gray',
+    
+
+    
+    
+        map = new Map('map', {
+        //basemap: 'dark-gray',
         center: [0, 0],
         zoom: 3
             /*,
@@ -41,13 +46,16 @@ require([
                         }
                     }),
                     wrapAround180: true*/
-    });
+    }); 
+    
+     var vtlayer = new VectorTileLayer("http://tiles.arcgis.com/tiles/UTG1M5eM6VLBcud8/arcgis/rest/services/ShorelineVectorTile_Draft/VectorTileServer");
+        map.addLayer(vtlayer); 
 
     var featureLayer = new FeatureLayer('//services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/World_Continents/FeatureServer/0');
 
     var symbol = new SimpleFillSymbol()
         .setColor(null)
-        .setOutline(new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([100, 0, 255]), 2));
+        .setOutline(new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([100, 0, 255, 0]), 2));
     var renderer = new SimpleRenderer(symbol);
     featureLayer.setRenderer(renderer);
 
