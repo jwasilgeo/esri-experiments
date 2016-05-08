@@ -5,8 +5,8 @@
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
     <title>Coast to Coast</title>
 
-    <link rel="stylesheet" href="//js.arcgis.com/4.0beta3/esri/css/main.css">
-    <script src="//js.arcgis.com/4.0beta3/"></script>
+    <link rel="stylesheet" href="//js.arcgis.com/4.0/esri/css/main.css">
+    <script src="//js.arcgis.com/4.0/"></script>
 
     <script src="//npmcdn.com/geodesy/latlon-spherical"></script>
     
@@ -14,13 +14,17 @@
         html, body {
             padding: 0;
             margin: 0;
+            height: 100%;
+        }
+        .esri-view {
+            height: 100%;
         }
     </style>
 
 </head>
 
 <body>
-    <div id="viewDiv"></div>
+    <div id="sceneViewDiv"></div>
     <script src="script.js"></script>
 </body>
 </html>

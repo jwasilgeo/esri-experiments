@@ -1,27 +1,33 @@
-var view;
+var mapView, sceneView;
 require([
-    'esri/Map',
-    'esri/views/SceneView',
-    'esri/layers/GraphicsLayer',
-    'esri/layers/FeatureLayer',
     'esri/geometry/geometryEngine',
     'esri/geometry/geometryEngineAsync',
-    'esri/geometry/Polyline',
     'esri/geometry/Point',
+    'esri/geometry/Polyline',
     'esri/Graphic',
+    'esri/layers/FeatureLayer',
+    'esri/layers/GraphicsLayer',
+    'esri/Map',
     'esri/symbols/SimpleLineSymbol',
     'esri/symbols/SimpleMarkerSymbol',
+    'esri/views/SceneView',
+
     'dojo/domReady!'
 ], function(
-    Map, SceneView, GraphicsLayer, FeatureLayer, geometryEngine, geometryEngineAsync, Polyline, Point, Graphic, SimpleLineSymbol, SimpleMarkerSymbol
+    geometryEngine, geometryEngineAsync, Point, Polyline, Graphic, FeatureLayer, GraphicsLayer, Map, SimpleLineSymbol, SimpleMarkerSymbol, SceneView
 ) {
+    // fill
+    // http://services1.arcgis.com/wQnFk5ouCfPzTlPw/arcgis/rest/services/Coastline_90_Gray/FeatureServer/0
+    // hollow
+    // http://services1.arcgis.com/wQnFk5ouCfPzTlPw/arcgis/rest/services/Coastline_hollow/FeatureServer/0
     var featureLayer = new FeatureLayer({
-        url: '//services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/World_Continents/FeatureServer/0'
+        // url: '//services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/World_Continents/FeatureServer/0'
+        url: '//services1.arcgis.com/wQnFk5ouCfPzTlPw/arcgis/rest/services/Coastline_hollow/FeatureServer/0'
     });
     featureLayer.then(function(layer) {
         layer.renderer.symbol.color = null;
-        layer.renderer.symbol.outline.width = 3;
-        layer.renderer.symbol.outline.color = [100, 0, 255];
+        layer.renderer.symbol.outline.width = 2;
+        // layer.renderer.symbol.outline.color = [100, 0, 255];
         layer.generalizeForScale = 1000000;
     });
 
@@ -32,72 +38,58 @@ require([
         layers: [featureLayer, graphicsLayer]
     });
 
-    view = new SceneView({
-        container: 'viewDiv',
+    sceneView = new SceneView({
+        container: 'sceneViewDiv',
         map: map,
         center: [0, 0],
-        zoom: 4.5
+        zoom: 4
     });
 
     var layerView = null;
-    var unionGeom = true; // TODO: return to falsy when/if the uioned geoms are still needed
+    // var unionGeom = true; // TODO: return to falsy when/if the uioned geoms are still needed
     var vertexIndices = [];
 
-    view.on('click', function(evt) {
-        checkLayerView(evt.mapPoint);
-    });
-
-    // simulate a view 'mouse-move' listener
-    // view.container.addEventListener('mousemove', handleMouseMove);
-
-    function handleMouseMove(mouseEvt) {
-        // convert from screen to view coordinates
-        view.hitTest(mouseEvt.layerX, mouseEvt.layerY).then(function(evt) {
-            // a hitTest appears to fire on a 'click' as well
-
-            /*if (evt.graphic) {
-                console.log(evt);
-            }*/
-
-            if (evt.mapPoint) {
-                checkLayerView(evt.mapPoint);
-            }
-        });
-    }
-
-    function checkLayerView(mapPoint) {
-        // establish the layerView (once) before attempting to do any analysis
-        if (!layerView) {
-            view.getLayerView(featureLayer).then(function(layerViewResults) {
-                layerView = layerViewResults;
-                checkAnalysisDependencies(layerView, mapPoint);
+    sceneView.whenLayerView(featureLayer)
+        .then(function(layerView) {
+            // The layerview for the layer
+            sceneView.on('click', function(evt) {
+                checkAnalysisDependencies(layerView, evt.mapPoint);
             });
-        } else {
-            checkAnalysisDependencies(layerView, mapPoint);
-        }
-    }
+
+            // simulate a view 'mouse-move' listener
+            /*sceneView.container.addEventListener('mousemove', function(mouseEvt) {
+                sceneView.hitTest(mouseEvt.layerX, mouseEvt.layerY).then(function(response) {
+                    // a hitTest appears to fire on a 'click' as well
+                    checkAnalysisDependencies(layerView, response.results[0].mapPoint);
+                });
+            });*/
+        })
+        .otherwise(function(error) {
+            // An error occurred during the layerview creation
+            console.error(error);
+        });
 
     function checkAnalysisDependencies(layerView, mapPoint) {
-        var canvas3DGraphics = layerView.getCanvas3DGraphics();
+        var canvas3DGraphics = layerView.getGraphics3DGraphics();
 
         var geoms = Object.keys(canvas3DGraphics).map(function(key) {
             return canvas3DGraphics[key].graphic.geometry;
         });
 
-        if (!unionGeom) {
-            unionGeom = geometryEngineAsync.union(geoms).then(function(geoms) {
-                unionGeom = geoms;
+        // if (!unionGeom) {
+        //     unionGeom = geometryEngineAsync.union(geoms).then(function(geoms) {
+        //         unionGeom = geoms;
 
-                console.info('union preprocessing complete');
+        //         console.info('union preprocessing complete');
 
-                performAnalysis(canvas3DGraphics, mapPoint, unionGeom);
-            });
-        } else {
-            performAnalysis(canvas3DGraphics, mapPoint, unionGeom);
-        }
+        //         performAnalysis(canvas3DGraphics, mapPoint, unionGeom);
+        //     });
+        // } else {
+        performAnalysis(canvas3DGraphics, mapPoint);
+        // }
     }
 
-    function performAnalysis(canvas3DGraphics, mapPoint /*, unionGeom*/ ) {
+    function performAnalysis(canvas3DGraphics, mapPoint) {
         var filteredIndices = Object.keys(canvas3DGraphics).filter(function(key) {
             return geometryEngine.intersects(canvas3DGraphics[key].graphic.geometry, mapPoint);
         });
@@ -152,6 +144,9 @@ require([
                     // Find the rotation coordinate adjustments for the wrap around line vertices at +90 and +270 longitude.
                     var rotationCoordinates = calculateRotationCoordinates(midPoint.latitude, rotationLatitudeBearing);
 
+                    console.info(coastlineBearing, perpendicularBearing, rotationLatitudeBearing);
+                    console.info(rotationCoordinates.longitude, rotationCoordinates.latitude);
+
                     // Determine if the wrap around line should be oriented east or west.
                     var directionToWrap = Math.abs(perpendicularBearing) < 180 ? 1 : -1;
 
@@ -174,15 +169,30 @@ require([
 
                     // Geodetically densify the wrap around line.
                     geometryEngineAsync.geodesicDensify(wrapAroundLine, 10000).then(function(gdLine) {
-                        graphicsLayer.clear();
+                        graphicsLayer.removeAll();
 
-                        graphicsLayer.add(new Graphic({
+                        /*graphicsLayer.add(new Graphic({
                             geometry: wrapAroundLine,
                             symbol: new SimpleLineSymbol({
                                 color: [255, 255, 100],
                                 width: 6
                             })
-                        }));
+                        }));*/
+
+                        var red = 0;
+                        var green = 250;
+                        wrapAroundLine.paths[0].forEach(function(vertex, idx) {
+                            // if (idx === 2) {
+                            graphicsLayer.add(new Graphic({
+                                geometry: new Point(vertex[0], vertex[1]),
+                                symbol: new SimpleMarkerSymbol({
+                                    color: [red, green, 0]
+                                })
+                            }));
+                            red += 75;
+                            green -= 75;
+                            // }
+                        });
 
                         graphicsLayer.add(new Graphic({
                             geometry: gdLine,
@@ -192,12 +202,12 @@ require([
                             })
                         }));
 
-                        graphicsLayer.add(new Graphic({
+                        /*graphicsLayer.add(new Graphic({
                             geometry: startPoint,
                             symbol: new SimpleMarkerSymbol({
                                 color: [255, 0, 0]
                             })
-                        }));
+                        }));*/
 
                         graphicsLayer.add(new Graphic({
                             geometry: midPoint,
@@ -206,23 +216,23 @@ require([
                             })
                         }));
 
-                        graphicsLayer.add(new Graphic({
+                        /*graphicsLayer.add(new Graphic({
                             geometry: endPoint,
                             symbol: new SimpleMarkerSymbol({
                                 color: [0, 255, 0]
                             })
-                        }));
+                        }));*/
 
                         return;
-
                         // Split the wrapped around and rotated line by any intersecting continents.
-                        geometryEngineAsync.difference(rotatedLine, unionGeom).then(function(leftoversGeom) {
+                        geometryEngineAsync.difference(gdLine, polygonToSearch).then(function(leftoversGeom) {
 
                             console.info('line differencing complete');
 
                             // Only keep the first difference line segment,
                             //  which whould be the path across the ocean to the opposing coast.
                             leftoversGeom.paths = [leftoversGeom.paths[0]];
+                            // leftoversGeom.paths = [leftoversGeom.paths.slice(leftoversGeom.paths.length-1)];
 
                             graphicsLayer.add(new Graphic({
                                 geometry: leftoversGeom,
