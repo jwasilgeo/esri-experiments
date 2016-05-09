@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+  
+  <title>Take a ride in the ISS</title>
+  
+  <link rel="stylesheet" href="//js.arcgis.com/4.0/esri/css/main.css">
+  <style>
+    html, body, .esri-view {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      /*width: 100%;*/
+      background-color: #000;
+    }
+    #photosDiv {
+      /*margin: 20px;*/
+      height: 100%;
+      width:  100px;
+      background-color: #fff;
+      /*border-radius: 2px;*/
+    }
+  </style>
+
+</head>
+
+<body>
+  <div id="viewDiv">
+    <!-- <div id="photosDiv">stuff</div> -->
+  </div>
+
+  <script src="//js.arcgis.com/4.0/"></script>
+
+  <script src="//npmcdn.com/geodesy/latlon-spherical"></script>
+
+  <script src="script.js"></script>
+</body>
+</html>
