@@ -17,12 +17,28 @@
       /*width: 100%;*/
       background-color: #000;
     }
-    #photosDiv {
-      /*margin: 20px;*/
-      height: 100%;
-      width:  100px;
-      background-color: #fff;
+    #contentDiv {
+      /*padding: 5px;
+      background-color: #fff;*/
       /*border-radius: 2px;*/
+
+      padding: 5px;
+      background-color: rgba(255, 255, 255, 0.5);
+      max-height: 600px
+    }
+    #photosDiv {
+      /*overflow-y: auto;
+      overflow-x: hidden;
+      height: 100%;
+      width:  100px;*/
+
+      padding-right: 22px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      /* margin: 20px; */
+      max-height: 600px;
+      /* width: 100px; */
+      /* position: relative; */
     }
   </style>
 
@@ -30,7 +46,9 @@
 
 <body>
   <div id="viewDiv">
-    <!-- <div id="photosDiv">stuff</div> -->
+    <div id="contentDiv" style="display:none;">
+      <div id="photosDiv"></div>
+    </div>
   </div>
 
   <script src="//js.arcgis.com/4.0/"></script>

@@ -11,3 +11,5 @@ Resources:
 - [Open Notify](http://open-notify.org/)
 
 - [Geodesy](https://github.com/chrisveness/geodesy)
+
+- [Gateway to Astronaut Photography of Earth: Earth Science and Remote Sensing Unit, NASA Johnson Space Center](http://eol.jsc.nasa.gov/)
