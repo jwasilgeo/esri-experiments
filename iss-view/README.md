@@ -9,3 +9,5 @@ Resources:
 - [ArcGIS API for JavaScript 4.0](https://js.arcgis.com)
 
 - [Open Notify](http://open-notify.org/)
+
+- [Geodesy](https://github.com/chrisveness/geodesy)
