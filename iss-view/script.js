@@ -1,7 +1,3 @@
-var view,
-  previousCoordinates,
-  nextCoordinates;
-
 require([
   'esri/Map',
   'esri/views/SceneView',
@@ -14,6 +10,13 @@ require([
   'dojo/request/script',
   'dojo/domReady!'
 ], function(Map, SceneView, QueryTask, Query, Circle, Graphic, /*GraphicsLayer, SimpleFillSymbol,*/ dojoRequestScript) {
+  var previousCoordinates;
+
+  var astroPhotosToggle = document.getElementById('astroPhotosToggle');
+  var contentNode = document.getElementById('contentNode');
+  var photosNode = document.getElementById('photosNode');
+  var authorInfo = document.getElementById('authorInfo');
+  var errorMessageNode = document.getElementById('errorMessageNode');
 
   var map = new Map({
     basemap: 'satellite'
@@ -21,7 +24,7 @@ require([
   // var graphicsLayer = new GraphicsLayer();
   // map.add(graphicsLayer);
 
-  view = new SceneView({
+  var view = new SceneView({
     container: 'viewNode',
     map: map,
     center: [0, 0],
@@ -46,20 +49,27 @@ require([
   });
 
   view.then(function() {
-    establishIssLocation();
+    if (checkWebGLSupport()) {
+      establishIssLocation();
+    }
+  }, function() {
+    checkWebGLSupport();
   });
+
+  function checkWebGLSupport() {
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|Opera Mini|IEMobile/i.test(navigator.userAgent)) {
+      errorMessageNode.innerHTML = 'This is awkward for you. You\'ll need a device/browser that supports WebGL. Here is a gif.'
+      errorMessageNode.setAttribute('class', 'errorMessage errorBackground');
+      return false;
+    } else {
+      return true;
+    }
+  }
 
   view.ui.add('astroPhotosToggle', 'top-right');
   view.ui.add('contentNode', 'top-right');
   view.ui.add('authorInfo', 'bottom-right');
 
-  var astroPhotosToggle = document.getElementById('astroPhotosToggle');
-  var contentNode = document.getElementById('contentNode');
-  var photosNode = document.getElementById('photosNode');
-  var authorInfo = document.getElementById('authorInfo');
-
-  astroPhotosToggle.style.display = 'flex';
-  contentNode.style.display = 'block';
   authorInfo.style.display = 'block';
 
   astroPhotosToggle.addEventListener('click', function(evt) {
@@ -88,51 +98,87 @@ require([
   function establishIssLocation() {
     dojoRequestScript.get(openNotifyIssNowUrl, {
       jsonp: 'callback'
-    }).then(establishIssLocationSuccess);
+    }).then(establishIssLocationSuccess, establishIssLocationError);
   }
 
   function establishIssLocationSuccess(res) {
+    // get two initial locations to be able to determine the heading
     if (res.message === 'success') {
       if (!previousCoordinates) {
         previousCoordinates = {
           latitude: res.iss_position.latitude,
           longitude: res.iss_position.longitude
         };
-        setTimeout(establishIssLocation(), 750);
-      } else if (!nextCoordinates) {
-        // nextCoordinates = ;
-
+        setTimeout(establishIssLocation, 750);
+      } else {
         updateCameraPosition({
           latitude: res.iss_position.latitude,
           longitude: res.iss_position.longitude
         });
-        setTimeout(updateIssLocation, 10000);
+
+        astroPhotosToggle.style.display = 'flex';
+        contentNode.style.display = 'block';
+
+        // update the location after a delay (only once from here)
+        setTimeout(getCurrentIssLocation, 10000);
       }
     }
   }
 
-  function updateIssLocation() {
-    dojoRequestScript.get(openNotifyIssNowUrl, {
-      jsonp: 'callback'
-    }).then(updateIssLocationSuccess);
+  function establishIssLocationError(err) {
+    console.error(err);
+    errorMessageNode.innerHTML = 'Whoops, this is awkward. We had trouble finding out where the space station is right now. Please try later!'
+    errorMessageNode.style.display = 'flex';
+
+    setTimeout(function() {
+      errorMessageNode.style.display = 'none';
+      previousCoordinates = {
+        latitude: 0,
+        longitude: 0
+      };
+      updateCameraPosition({
+        latitude: 0,
+        longitude: 0
+      });
+    }, 6000)
   }
 
-  function updateIssLocationSuccess(res) {
+  function getCurrentIssLocation() {
+    dojoRequestScript.get(openNotifyIssNowUrl, {
+      jsonp: 'callback'
+    }).then(getCurrentIssLocationSuccess, getCurrentIssLocationError);
+  }
+
+  function getCurrentIssLocationSuccess(res) {
     if (res.message === 'success') {
       updateCameraPosition({
         latitude: res.iss_position.latitude,
         longitude: res.iss_position.longitude
       });
     }
-    setTimeout(updateIssLocation, 10000);
+    // update the location after a delay (continue indefinitely from here)
+    setTimeout(getCurrentIssLocation, 10000);
+  }
+
+  function getCurrentIssLocationError(err) {
+    console.error(err);
+    errorMessageNode.innerHTML =
+      '<div>It seems that we\'ve misplaced the space station.</div>' +
+      '<div>We\'ll try to look again in a minute or two.</div>' +
+      '<div>Go click on something else.</div>';
+    errorMessageNode.style.display = 'flex';
+    setTimeout(function() {
+      errorMessageNode.style.display = 'none';
+    }, 15000)
+    setTimeout(getCurrentIssLocation, 60000);
   }
 
   function updateCameraPosition(nextCoordinates) {
     var heading = calculateGeodesyMethod(previousCoordinates, nextCoordinates, 'bearingTo');
     previousCoordinates = nextCoordinates;
 
-    getPhotos(view.extent.center);
-    // getPhotos([nextCoordinates.longitude, nextCoordinates.latitude]);
+    // getPhotos(view.extent.center);
+    getPhotos([nextCoordinates.longitude, nextCoordinates.latitude]);
     view.goTo({
       position: {
         latitude: nextCoordinates.latitude,
@@ -190,6 +236,7 @@ require([
           var img = document.createElement('img');
           img.width = '150';
           img.src = 'http://eol.jsc.nasa.gov/DatabaseImages/ESC/small/' + feature.attributes.mission + '/' + feature.attributes.missionRollFrame + '.JPG';
+          img.title = 'NASA Johnson Space Center';
 
           a.appendChild(img);
           div.appendChild(a);
