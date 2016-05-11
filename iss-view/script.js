@@ -22,27 +22,13 @@ require([
   // map.add(graphicsLayer);
 
   view = new SceneView({
-    container: 'viewDiv',
+    container: 'viewNode',
     map: map,
     center: [0, 0],
     zoom: -5,
-    // camera: {
-    //     fov: 55,
-    //     heading: 90, // face due east
-    //     tilt: 60, // looking from a bird's eye view
-    //     position: {
-    //       latitude: lat,
-    //       longitude: long,
-    //       z: 412500,
-    //       spatialReference: {
-    //         wkid: 3857
-    //       }
-    //     }
-    //   },
     environment: {
       lighting: {
         date: Date.now(),
-        // ambientOcclusionEnabled: true,
         cameraTrackingEnabled: false
       },
       atmosphere: {
@@ -59,76 +45,91 @@ require([
     }
   });
 
-  view.ui.add('contentDiv', 'top-right');
-  var contentDiv = document.getElementById('contentDiv');
-  var photosDiv = document.getElementById('photosDiv');
-
-  var url = 'https://api.open-notify.org/iss-now.json';
-
   view.then(function() {
-    findISS();
+    establishIssLocation();
   });
 
-  function findISS() {
-    dojoRequestScript.get(url, {
+  view.ui.add('astroPhotosToggle', 'top-right');
+  view.ui.add('contentNode', 'top-right');
+  view.ui.add('authorInfo', 'bottom-right');
+
+  var astroPhotosToggle = document.getElementById('astroPhotosToggle');
+  var contentNode = document.getElementById('contentNode');
+  var photosNode = document.getElementById('photosNode');
+  var authorInfo = document.getElementById('authorInfo');
+
+  astroPhotosToggle.style.display = 'flex';
+  contentNode.style.display = 'block';
+  authorInfo.style.display = 'block';
+
+  astroPhotosToggle.addEventListener('click', function(evt) {
+    if (contentNode.style.display === 'none') {
+      contentNode.style.display = 'block';
+    } else {
+      contentNode.style.display = 'none';
+    }
+  });
+
+  /*view.ui.add('daylightToggle', 'top-left');
+  var daylightToggle = document.getElementById('daylightToggle');
+  daylightToggle.style.display = 'flex';
+  daylightToggle.addEventListener('click', function(evt) {
+    if (view.environment.lighting.cameraTrackingEnabled) {
+      view.environment.lighting.date = Date.now();
+      view.environment.lighting.cameraTrackingEnabled = false;
+    } else {
+      view.environment.lighting.date = new Date('March 15, 2015 12:00:00');
+      view.environment.lighting.cameraTrackingEnabled = true;
+    }
+  });*/
+
+  var openNotifyIssNowUrl = 'https://api.open-notify.org/iss-now.json';
+
+  function establishIssLocation() {
+    dojoRequestScript.get(openNotifyIssNowUrl, {
       jsonp: 'callback'
-    }).then(findISSSuccess);
+    }).then(establishIssLocationSuccess);
   }
 
-  function findISSSuccess(res) {
+  function establishIssLocationSuccess(res) {
     if (res.message === 'success') {
       if (!previousCoordinates) {
         previousCoordinates = {
           latitude: res.iss_position.latitude,
           longitude: res.iss_position.longitude
         };
-        setTimeout(findISS(), 500);
+        setTimeout(establishIssLocation(), 750);
       } else if (!nextCoordinates) {
-        nextCoordinates = {
+        // nextCoordinates = ;
+
+        updateCameraPosition({
           latitude: res.iss_position.latitude,
           longitude: res.iss_position.longitude
-        };
-
-        var heading = calculateGeodesyMethod(previousCoordinates, nextCoordinates, 'bearingTo');
-
-        view.goTo({
-          position: {
-            latitude: nextCoordinates.latitude,
-            longitude: nextCoordinates.longitude,
-            z: 412500 // altitude in meters
-          },
-          tilt: 65,
-          heading: heading
         });
-
-        previousCoordinates = nextCoordinates;
-        setTimeout(updateISS, 2000);
+        setTimeout(updateIssLocation, 10000);
       }
     }
   }
 
-  function updateISS() {
-    dojoRequestScript.get(url, {
+  function updateIssLocation() {
+    dojoRequestScript.get(openNotifyIssNowUrl, {
       jsonp: 'callback'
-    }).then(updateISSSuccess);
+    }).then(updateIssLocationSuccess);
   }
 
-  function updateISSSuccess(res) {
+  function updateIssLocationSuccess(res) {
     if (res.message === 'success') {
-      updatePosition({
+      updateCameraPosition({
         latitude: res.iss_position.latitude,
         longitude: res.iss_position.longitude
       });
     }
+    setTimeout(updateIssLocation, 10000);
   }
 
-  function updatePosition(nextCoordinates) {
-    console.log(arguments);
-
+  function updateCameraPosition(nextCoordinates) {
     var heading = calculateGeodesyMethod(previousCoordinates, nextCoordinates, 'bearingTo');
     previousCoordinates = nextCoordinates;
-
-    console.log(heading);
 
     getPhotos(view.extent.center);
     // getPhotos([nextCoordinates.longitude, nextCoordinates.latitude]);
@@ -140,73 +141,69 @@ require([
       },
       tilt: 65,
       heading: heading
-    }).then(function(e) {
-      console.log(e);
     });
-
-    setTimeout(updateISS, 10000);
-
   }
 
   function getPhotos(centerPoint) {
-    var searchGeometry = new Circle({
-      center: centerPoint,
-      radius: 100,
-      radiusUnit: 'kilometers',
-      geodesic: true
-    });
-    
-    /*graphicsLayer.add(new Graphic({
-      geometry: searchGeometry,
-      symbol: new SimpleFillSymbol({
-        color: [51, 51, 204, 0.9],
-        style: 'solid',
-        outline: {
-          color: 'white',
-          width: 1
-        }
-      })
-    }));*/
+    if (contentNode.style.display !== 'none') {
 
-    var queryTask = new QueryTask({
-      url: '//services2.arcgis.com/gLefH1ihsr75gzHY/arcgis/rest/services/ISSPhotoLocations_20_34/FeatureServer/0',
-    });
-    var query = new Query();
-    query.geometry = searchGeometry;
-    query.returnGeometry = false;
-    query.outFields = ['missionRollFrame', 'mission', 'roll', 'frame'];
-    queryTask.execute(query).then(function(results) {
-      // Do something with the resulting FeatureSet (zoom to it, highlight features, get other attributes, etc)
-      console.log(results.features);
-
-      contentDiv.style.display = 'none';
-      while (photosDiv.hasChildNodes()) {
-        photosDiv.removeChild(photosDiv.firstChild);
-      }
-
-      var docFragment = document.createDocumentFragment();
-
-      results.features.forEach(function(feature) {
-        var div = document.createElement('div');
-        var a = document.createElement('a');
-        a.href = 'http://eol.jsc.nasa.gov/SearchPhotos/photo.pl?mission=' + feature.attributes.mission + '&roll=' + feature.attributes.roll + '&frame=' + feature.attributes.frame;
-        a.target = '_blank';
-        // a.innerHTML = feature.attributes.missionRollFrame;
-
-        var img = document.createElement('img');
-        img.width = '150';
-        img.src = 'http://eol.jsc.nasa.gov/DatabaseImages/ESC/small/' + feature.attributes.mission + '/' + feature.attributes.missionRollFrame + '.JPG';
-
-        a.appendChild(img);
-        div.appendChild(a);
-        docFragment.appendChild(div);
+      var searchGeometry = new Circle({
+        center: centerPoint,
+        radius: 100,
+        radiusUnit: 'kilometers',
+        geodesic: true
       });
 
-      if (results.features.length) {
-        contentDiv.style.display = 'block';
-        photosDiv.appendChild(docFragment);
-      }
-    });
+      /*graphicsLayer.add(new Graphic({
+        geometry: searchGeometry,
+        symbol: new SimpleFillSymbol({
+          color: [51, 51, 204, 0.9],
+          style: 'solid',
+          outline: {
+            color: 'white',
+            width: 1
+          }
+        })
+      }));*/
+
+      var queryTask = new QueryTask({
+        url: '//services2.arcgis.com/gLefH1ihsr75gzHY/arcgis/rest/services/ISSPhotoLocations_20_34/FeatureServer/0',
+      });
+      var query = new Query();
+      query.geometry = searchGeometry;
+      query.returnGeometry = false;
+      query.outFields = ['missionRollFrame', 'mission', 'roll', 'frame'];
+      queryTask.execute(query).then(function(results) {
+
+        while (photosNode.hasChildNodes()) {
+          photosNode.removeChild(photosNode.firstChild);
+        }
+
+        var docFragment = document.createDocumentFragment();
+
+        results.features.slice(0, 25).forEach(function(feature, idx) {
+          var div = document.createElement('div');
+          var a = document.createElement('a');
+          a.href = 'http://eol.jsc.nasa.gov/SearchPhotos/photo.pl?mission=' + feature.attributes.mission + '&roll=' + feature.attributes.roll + '&frame=' + feature.attributes.frame;
+          a.target = '_blank';
+
+          var img = document.createElement('img');
+          img.width = '150';
+          img.src = 'http://eol.jsc.nasa.gov/DatabaseImages/ESC/small/' + feature.attributes.mission + '/' + feature.attributes.missionRollFrame + '.JPG';
+
+          a.appendChild(img);
+          div.appendChild(a);
+          docFragment.appendChild(div);
+        });
+
+        if (results.features.length) {
+          photosNode.appendChild(docFragment);
+        } else {
+          photosNode.innerHTML = 'No photos found here.'
+        }
+      });
+
+    }
 
   }
 

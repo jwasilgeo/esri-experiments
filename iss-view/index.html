@@ -10,44 +10,68 @@
   
   <link rel="stylesheet" href="//js.arcgis.com/4.0/esri/css/main.css">
   <style>
+    body {
+      font-family: "Avenir Next W01","Avenir Next W00","Avenir Next","Avenir","Helvetica Neue","Helvetica","Arial",sans-serif
+    }
     html, body, .esri-view {
       padding: 0;
       margin: 0;
       height: 100%;
-      /*width: 100%;*/
       background-color: #000;
     }
-    #contentDiv {
-      /*padding: 5px;
-      background-color: #fff;*/
-      /*border-radius: 2px;*/
-
+    #astroPhotosToggle {
+      display: none;
+    }
+    #contentNode {
+      display: none;
       padding: 5px;
       background-color: rgba(255, 255, 255, 0.5);
       max-height: 600px
     }
-    #photosDiv {
-      /*overflow-y: auto;
-      overflow-x: hidden;
-      height: 100%;
-      width:  100px;*/
-
+    #photosNode {
       padding-right: 22px;
       overflow-y: auto;
       overflow-x: hidden;
-      /* margin: 20px; */
       max-height: 600px;
-      /* width: 100px; */
-      /* position: relative; */
+    }
+    #authorInfo {
+      display: none;
+      padding: 5px;
+      background-color: rgba(255, 255, 255, 0.5);
+    }
+    #authorInfo a {
+      color: #323232;
+      margin: 0 5px;
+      font-size: 1.15em;
+      font-weight: bold;
+    }
+    .bigger-icon {
+      font-size: 22px;
     }
   </style>
 
 </head>
 
 <body>
-  <div id="viewDiv">
-    <div id="contentDiv" style="display:none;">
-      <div id="photosDiv"></div>
+  <div id="viewNode">
+    <!-- <div id="daylightToggle" role="button" tabindex="0" class="esri-widget-button esri-widget esri-component">
+        <span aria-hidden="true" class="esri-icon esri-icon-environment-settings bigger-icon" title="Daylight"></span>
+        <span class="esri-icon-font-fallback-text">Daylight</span>
+    </div> -->
+
+    <div id="astroPhotosToggle" role="button" tabindex="0" class="esri-widget-button esri-widget esri-component">
+        <span aria-hidden="true" class="esri-icon esri-icon-media bigger-icon" title="Astronaut Photos"></span>
+        <span class="esri-icon-font-fallback-text">Astronaut Photos</span>
+    </div>
+
+    <div id="contentNode">
+      <div id="photosNode">No photos found here.</div>
+    </div>
+
+    <div id="authorInfo" class="esri-widget esri-component">
+        <a target="_blank" href="https://github.com/jwasilgeo/esri-experiments/tree/master/iss-view">Github</a>
+        |
+        <a target="_blank" href="https://twitter.com/JWasilGeo">@JWasilGeo</a>
     </div>
   </div>
 
