@@ -7,9 +7,10 @@ require([
   'esri/Graphic',
   // 'esri/layers/GraphicsLayer',
   // 'esri/symbols/SimpleFillSymbol',
-  'dojo/request/script',
+  'esri/config',
+  'esri/request',
   'dojo/domReady!'
-], function(Map, SceneView, QueryTask, Query, Circle, Graphic, /*GraphicsLayer, SimpleFillSymbol,*/ dojoRequestScript) {
+], function(Map, SceneView, QueryTask, Query, Circle, Graphic, /*GraphicsLayer, SimpleFillSymbol,*/ esriConfig, esriRequest) {
   var previousCoordinates;
 
   var astroPhotosToggle = document.getElementById('astroPhotosToggle');
@@ -93,41 +94,41 @@ require([
     }
   });*/
 
-  var openNotifyIssNowUrl = 'https://api.open-notify.org/iss-now.json';
+  var issLocationUrl = 'https://api.wheretheiss.at/v1/satellites/25544';
+  esriConfig.request.corsEnabledServers.push(issLocationUrl);
 
   function establishIssLocation() {
-    dojoRequestScript.get(openNotifyIssNowUrl, {
-      jsonp: 'callback'
+    esriRequest(issLocationUrl, {
+      responseType: 'json'
     }).then(establishIssLocationSuccess, establishIssLocationError);
   }
 
   function establishIssLocationSuccess(res) {
     // get two initial locations to be able to determine the heading
-    if (res.message === 'success') {
-      if (!previousCoordinates) {
-        previousCoordinates = {
-          latitude: res.iss_position.latitude,
-          longitude: res.iss_position.longitude
-        };
-        setTimeout(establishIssLocation, 750);
-      } else {
-        updateCameraPosition({
-          latitude: res.iss_position.latitude,
-          longitude: res.iss_position.longitude
-        });
+    if (!previousCoordinates) {
+      previousCoordinates = {
+        latitude: res.data.latitude,
+        longitude: res.data.longitude
+      };
+      setTimeout(establishIssLocation, 1000);
+    } else {
+      updateCameraPosition({
+        latitude: res.data.latitude,
+        longitude: res.data.longitude,
+        altitude: (res.data.altitude * 1000) || undefined
+      });
 
-        astroPhotosToggle.style.display = 'flex';
-        contentNode.style.display = 'block';
+      astroPhotosToggle.style.display = 'flex';
+      contentNode.style.display = 'block';
 
-        // update the location after a delay (only once from here)
-        setTimeout(getCurrentIssLocation, 10000);
-      }
+      // update the location after a delay (only once from here)
+      setTimeout(getCurrentIssLocation, 20000);
     }
   }
 
   function establishIssLocationError(err) {
     console.error(err);
-    errorMessageNode.innerHTML = 'Whoops, this is awkward. We had trouble finding out where the space station is right now. Please try later!';
+    errorMessageNode.innerHTML = 'We had trouble finding out where the space station is right now. Please try later!';
     errorMessageNode.style.display = 'flex';
 
     setTimeout(function() {
@@ -138,26 +139,26 @@ require([
       };
       updateCameraPosition({
         latitude: 0,
-        longitude: 0
+        longitude: 0,
+        altitude: undefined
       });
     }, 6000);
   }
 
   function getCurrentIssLocation() {
-    dojoRequestScript.get(openNotifyIssNowUrl, {
-      jsonp: 'callback'
+    esriRequest(issLocationUrl, {
+      responseType: 'json'
     }).then(getCurrentIssLocationSuccess, getCurrentIssLocationError);
   }
 
   function getCurrentIssLocationSuccess(res) {
-    if (res.message === 'success') {
-      updateCameraPosition({
-        latitude: res.iss_position.latitude,
-        longitude: res.iss_position.longitude
-      });
-    }
+    updateCameraPosition({
+      latitude: res.data.latitude,
+      longitude: res.data.longitude,
+      altitude: (res.data.altitude * 1000) || undefined
+    });
     // update the location after a delay (continue indefinitely from here)
-    setTimeout(getCurrentIssLocation, 10000);
+    setTimeout(getCurrentIssLocation, 20000);
   }
 
   function getCurrentIssLocationError(err) {
@@ -183,7 +184,8 @@ require([
       position: {
         latitude: nextCoordinates.latitude,
         longitude: nextCoordinates.longitude,
-        z: 412500 // altitude in meters
+        z: nextCoordinates.altitude || 412500 // altitude in meters
+          // z: 412500 // altitude in meters
       },
       tilt: 65,
       heading: heading
