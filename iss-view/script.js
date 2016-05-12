@@ -93,7 +93,7 @@ require([
     }
   });*/
 
-  var openNotifyIssNowUrl = 'https://api.open-notify.org/iss-now.json';
+  var openNotifyIssNowUrl = 'http://api.open-notify.org/iss-now.json';
 
   function establishIssLocation() {
     dojoRequestScript.get(openNotifyIssNowUrl, {
@@ -120,7 +120,7 @@ require([
         contentNode.style.display = 'block';
 
         // update the location after a delay (only once from here)
-        setTimeout(getCurrentIssLocation, 10000);
+        setTimeout(getCurrentIssLocation, 20000);
       }
     }
   }
@@ -157,7 +157,7 @@ require([
       });
     }
     // update the location after a delay (continue indefinitely from here)
-    setTimeout(getCurrentIssLocation, 10000);
+    setTimeout(getCurrentIssLocation, 20000);
   }
 
   function getCurrentIssLocationError(err) {
