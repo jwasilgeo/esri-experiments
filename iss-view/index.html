@@ -34,16 +34,24 @@
       overflow-x: hidden;
       max-height: 600px;
     }
-    #authorInfo {
+    .credits {
       display: none;
       padding: 5px;
+      line-height: 1.5em;
       background-color: rgba(255, 255, 255, 0.65);
     }
-    #authorInfo a {
+    .credits a {
       color: #323232;
-      margin: 0 5px;
+      margin: 0 7px;
       font-size: 1.15em;
       font-weight: bold;
+    }
+    .credits .iss,
+    .credits .iss a {
+      margin: 0;
+      font-size: 1.0em;
+      font-weight: normal;
+      text-align: center;
     }
     .bigger-icon {
       font-size: 22px;
@@ -92,10 +100,13 @@
       <div id="photosNode">No photos found here.</div>
     </div>
 
-    <div id="authorInfo" class="esri-widget esri-component">
-        <a target="_blank" href="https://github.com/jwasilgeo/esri-experiments/tree/master/iss-view">Github</a>
-        |
+    <div id="creditsNode" class="esri-widget esri-component credits">
         <a target="_blank" href="https://twitter.com/JWasilGeo">@JWasilGeo</a>
+        |
+        <a target="_blank" href="https://github.com/jwasilgeo/esri-experiments/tree/master/iss-view">Github</a>
+        <div class="iss">
+          ISS location © <a href="http://open-notify.org/" target="_blank">Open Notify</a>
+        </div>
     </div>
 
     <div id="errorMessageNode" class="errorMessage"></div>

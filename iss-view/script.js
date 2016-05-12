@@ -15,7 +15,7 @@ require([
   var astroPhotosToggle = document.getElementById('astroPhotosToggle');
   var contentNode = document.getElementById('contentNode');
   var photosNode = document.getElementById('photosNode');
-  var authorInfo = document.getElementById('authorInfo');
+  var creditsNode = document.getElementById('creditsNode');
   var errorMessageNode = document.getElementById('errorMessageNode');
 
   var map = new Map({
@@ -58,7 +58,7 @@ require([
 
   function checkWebGLSupport() {
     if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|Opera Mini|IEMobile/i.test(navigator.userAgent)) {
-      errorMessageNode.innerHTML = 'This is awkward for you. You\'ll need a device/browser that supports WebGL. Here is a gif.'
+      errorMessageNode.innerHTML = 'You\'ll need a device/browser that supports WebGL. This must be awkward for you. Here\'s a gif instead.';
       errorMessageNode.setAttribute('class', 'errorMessage errorBackground');
       return false;
     } else {
@@ -68,9 +68,9 @@ require([
 
   view.ui.add('astroPhotosToggle', 'top-right');
   view.ui.add('contentNode', 'top-right');
-  view.ui.add('authorInfo', 'bottom-right');
+  view.ui.add('creditsNode', 'bottom-right');
 
-  authorInfo.style.display = 'block';
+  creditsNode.style.display = 'block';
 
   astroPhotosToggle.addEventListener('click', function(evt) {
     if (contentNode.style.display === 'none') {
@@ -127,7 +127,7 @@ require([
 
   function establishIssLocationError(err) {
     console.error(err);
-    errorMessageNode.innerHTML = 'Whoops, this is awkward. We had trouble finding out where the space station is right now. Please try later!'
+    errorMessageNode.innerHTML = 'Whoops, this is awkward. We had trouble finding out where the space station is right now. Please try later!';
     errorMessageNode.style.display = 'flex';
 
     setTimeout(function() {
@@ -140,7 +140,7 @@ require([
         latitude: 0,
         longitude: 0
       });
-    }, 6000)
+    }, 6000);
   }
 
   function getCurrentIssLocation() {
@@ -169,7 +169,7 @@ require([
     errorMessageNode.style.display = 'flex';
     setTimeout(function() {
       errorMessageNode.style.display = 'none';
-    }, 15000)
+    }, 15000);
     setTimeout(getCurrentIssLocation, 60000);
   }
 
@@ -230,12 +230,12 @@ require([
         results.features.slice(0, 25).forEach(function(feature, idx) {
           var div = document.createElement('div');
           var a = document.createElement('a');
-          a.href = 'http://eol.jsc.nasa.gov/SearchPhotos/photo.pl?mission=' + feature.attributes.mission + '&roll=' + feature.attributes.roll + '&frame=' + feature.attributes.frame;
+          a.href = '//eol.jsc.nasa.gov/SearchPhotos/photo.pl?mission=' + feature.attributes.mission + '&roll=' + feature.attributes.roll + '&frame=' + feature.attributes.frame;
           a.target = '_blank';
 
           var img = document.createElement('img');
           img.width = '150';
-          img.src = 'http://eol.jsc.nasa.gov/DatabaseImages/ESC/small/' + feature.attributes.mission + '/' + feature.attributes.missionRollFrame + '.JPG';
+          img.src = '//eol.jsc.nasa.gov/DatabaseImages/ESC/small/' + feature.attributes.mission + '/' + feature.attributes.missionRollFrame + '.JPG';
           img.title = 'NASA Johnson Space Center';
 
           a.appendChild(img);
@@ -246,7 +246,7 @@ require([
         if (results.features.length) {
           photosNode.appendChild(docFragment);
         } else {
-          photosNode.innerHTML = 'No photos found here.'
+          photosNode.innerHTML = 'No photos found here.';
         }
       });
 
