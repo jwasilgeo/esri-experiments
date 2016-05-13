@@ -1,19 +1,30 @@
 require([
+  'dojo/request/script',
+
+  'esri/Basemap',
+  'esri/config',
+  'esri/geometry/Circle',
+  // 'esri/Graphic',
+  // 'esri/layers/GraphicsLayer',
+  'esri/layers/WebTileLayer',
   'esri/Map',
-  'esri/views/SceneView',
+  'esri/symbols/SimpleFillSymbol',
   'esri/tasks/QueryTask',
   'esri/tasks/support/Query',
-  'esri/geometry/Circle',
-  'esri/Graphic',
-  // 'esri/layers/GraphicsLayer',
-  // 'esri/symbols/SimpleFillSymbol',
-  'dojo/request/script',
+  'esri/views/SceneView',
+  'esri/widgets/BasemapToggle',
+
   'dojo/domReady!'
-], function(Map, SceneView, QueryTask, Query, Circle, Graphic, /*GraphicsLayer, SimpleFillSymbol,*/ dojoRequestScript) {
+], function(
+  dojoRequestScript,
+  Basemap, esriConfig, Circle, /*Graphic, GraphicsLayer,*/ WebTileLayer, Map, SimpleFillSymbol, QueryTask, Query, SceneView, BasemapToggle
+) {
+  esriConfig.request.corsEnabledServers.push('a.tile.stamen.com', 'b.tile.stamen.com', 'c.tile.stamen.com', 'd.tile.stamen.com');
+
   var previousCoordinates;
 
   var astroPhotosToggle = document.getElementById('astroPhotosToggle');
-  var contentNode = document.getElementById('contentNode');
+  var photosParentNode = document.getElementById('photosParentNode');
   var photosNode = document.getElementById('photosNode');
   var creditsNode = document.getElementById('creditsNode');
   var errorMessageNode = document.getElementById('errorMessageNode');
@@ -55,25 +66,28 @@ require([
     }
   });
 
-  view.then(function() {
+  view.ui.add('creditsNode', 'bottom-right');
+  creditsNode.style.display = 'block';
+
+  view.then(function(view) {
     if (checkWebGLSupport()) {
-      errorMessageNode.innerHTML = 'We\'re looking around for the space station. Hold on!';
-      errorMessageNode.style.display = 'flex';
-
-      astroPhotosToggle.style.display = 'flex';
-      contentNode.style.display = 'block';
-
-      view.watch('stationary', function(newValue) {
-        if (newValue) {
-          getPhotos(view.extent.center);
-        }
-      });
-
-      establishIssLocation();
+      startupMappingComponents(view);
     }
   }, function() {
     checkWebGLSupport();
   });
+
+  function startupMappingComponents(view) {
+    errorMessageNode.innerHTML = 'We\'re looking around for the space station. Hold on!';
+    errorMessageNode.style.display = 'flex';
+
+    establishIssLocation();
+
+    view.ui.add('smallButtonsControl', 'top-right');
+    addDaylightToggle(view);
+    addAstroPhotosToggle(view);
+    addCustomBasemap(view);
+  }
 
   function checkWebGLSupport() {
     if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|Opera Mini|IEMobile/i.test(navigator.userAgent)) {
@@ -85,32 +99,67 @@ require([
     }
   }
 
-  view.ui.add('astroPhotosToggle', 'top-right');
-  view.ui.add('contentNode', 'top-right');
-  view.ui.add('creditsNode', 'bottom-right');
+  function addAstroPhotosToggle(view) {
+    // view.ui.add('astroPhotosToggle', 'top-right');
+    view.ui.add('photosParentNode', 'top-right');
+    astroPhotosToggle.style.display = 'flex';
+    photosParentNode.style.display = 'block';
 
-  creditsNode.style.display = 'block';
+    astroPhotosToggle.addEventListener('click', function(evt) {
+      if (photosParentNode.style.display === 'none') {
+        photosParentNode.style.display = 'block';
+      } else {
+        photosParentNode.style.display = 'none';
+      }
+    });
 
-  astroPhotosToggle.addEventListener('click', function(evt) {
-    if (contentNode.style.display === 'none') {
-      contentNode.style.display = 'block';
-    } else {
-      contentNode.style.display = 'none';
-    }
-  });
+    view.watch('stationary', function(value) {
+      if (value) {
+        getPhotos(view.extent.center);
+      }
+    });
+  }
 
-  /*view.ui.add('daylightToggle', 'top-left');
-  var daylightToggle = document.getElementById('daylightToggle');
-  daylightToggle.style.display = 'flex';
-  daylightToggle.addEventListener('click', function(evt) {
-    if (view.environment.lighting.cameraTrackingEnabled) {
-      view.environment.lighting.date = Date.now();
-      view.environment.lighting.cameraTrackingEnabled = false;
-    } else {
-      view.environment.lighting.date = new Date('March 15, 2015 12:00:00');
-      view.environment.lighting.cameraTrackingEnabled = true;
-    }
-  });*/
+  function addDaylightToggle(view) {
+    // view.ui.add('daylightToggle', 'top-right');
+    var daylightToggle = document.getElementById('daylightToggle');
+    daylightToggle.style.display = 'flex';
+
+    var timeAtCreation = view.environment.lighting.clone().date;
+    daylightToggle.addEventListener('click', function() {
+      if (view.environment.lighting.date.getTime() === timeAtCreation.getTime()) {
+        view.environment.lighting.date = timeAtCreation.getTime() + (12 * 3.6e+6);
+      } else {
+        view.environment.lighting.date = timeAtCreation;
+      }
+    });
+  }
+
+  function addCustomBasemap(view) {
+    var stamenBasemap = new Basemap({
+      baseLayers: [new WebTileLayer({
+        urlTemplate: 'http://{subDomain}.tile.stamen.com/toner/{level}/{col}/{row}.png',
+        subDomains: ['a', 'b', 'c', 'd'],
+        copyright: [
+          'Map tiles by <a href="http://stamen.com">Stamen Design</a>, ',
+          'under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. ',
+          'Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, ',
+          'under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.'
+        ].join()
+      })],
+      title: 'Toner',
+      id: 'toner',
+      thumbnailUrl: '//stamen-tiles.a.ssl.fastly.net/toner/10/177/409.png'
+    });
+
+    var basemapToggle = new BasemapToggle({
+      view: view,
+      nextBasemap: stamenBasemap,
+      titleVisible: false
+    });
+    basemapToggle.startup();
+    view.ui.add(basemapToggle, 'bottom-left');
+  }
 
   function establishIssLocation() {
     dojoRequestScript.get(issLocationUrl, {
@@ -137,7 +186,7 @@ require([
         });
 
         astroPhotosToggle.style.display = 'flex';
-        contentNode.style.display = 'block';
+        photosParentNode.style.display = 'block';
 
         // update the location after a delay (only once from here)
         setTimeout(getCurrentIssLocation, updateDelay);
@@ -230,7 +279,7 @@ require([
   }
 
   function getPhotos(centerPoint) {
-    if (contentNode.style.display !== 'none') {
+    if (photosParentNode.style.display !== 'none') {
 
       var searchGeometry = new Circle({
         center: centerPoint,

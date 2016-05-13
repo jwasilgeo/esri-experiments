@@ -5,9 +5,10 @@
   <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
 
   <meta name="description" content="Take a ride on the International Space Station with Esri ArcGIS API for JavaScript">
-  
+
   <title>Take a ride on the ISS</title>
-  
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+
   <link rel="stylesheet" href="//js.arcgis.com/4.0/esri/css/main.css">
   <style>
     body {
@@ -19,20 +20,29 @@
       height: 100%;
       background-color: #000;
     }
-    #astroPhotosToggle {
-      display: none;
-    }
-    #contentNode {
-      display: none;
+    #photosParentNode {
       padding: 5px;
       background-color: rgba(255, 255, 255, 0.35);
       max-height: 600px
+    }
+    #smallButtonsControl {
+      display: flex;
     }
     #photosNode {
       padding-right: 22px;
       overflow-y: auto;
       overflow-x: hidden;
       max-height: 600px;
+    }
+    #daylightToggle {
+      margin: 0 8px 0 0;
+    }
+    #hoursAdjustment {
+      width: 100px;
+      margin: 6px 8px 0 0;
+    }
+    .off {
+      display: none;
     }
     .credits {
       display: none;
@@ -80,23 +90,36 @@
       background-size: 100%;
       background-repeat: no-repeat;
     }
+    /* slightly smaller basemap toggle */
+    .esri-basemap-toggle {
+      height: 58px;
+      width: 53px;
+    }
+    .esri-basemap-toggle__container, .esri-basemap-toggle__image {
+      height: 53px;
+      width: 53px;
+    }
   </style>
 
 </head>
 
 <body>
   <div id="viewNode">
-    <!-- <div id="daylightToggle" role="button" tabindex="0" class="esri-widget-button esri-widget esri-component">
-        <span aria-hidden="true" class="esri-icon esri-icon-environment-settings bigger-icon" title="Daylight"></span>
-        <span class="esri-icon-font-fallback-text">Daylight</span>
-    </div> -->
-
-    <div id="astroPhotosToggle" role="button" tabindex="0" class="esri-widget-button esri-widget esri-component">
-        <span aria-hidden="true" class="esri-icon esri-icon-media bigger-icon" title="Astronaut Photos"></span>
-        <span class="esri-icon-font-fallback-text">Astronaut Photos</span>
+    <div id="smallButtonsControl">
+      <div>
+        <input id="hoursAdjustment" class="off" type="range" name="" min="-12" max="12" step="0.5" value="0"  title="Adjust Daylight" >
+      </div>
+      <div id="daylightToggle" role="button" tabindex="0" class="off esri-widget-button esri-widget esri-component">
+          <span aria-hidden="true" class="esri-icon esri-icon-environment-settings bigger-icon" title="Adjust Daylight"></span>
+          <span class="esri-icon-font-fallback-text">Daylight</span>
+      </div>
+      <div id="astroPhotosToggle" role="button" tabindex="0" class="off esri-widget-button esri-widget esri-component">
+          <span aria-hidden="true" class="esri-icon esri-icon-media bigger-icon" title="Astronaut Photos"></span>
+          <span class="esri-icon-font-fallback-text">Astronaut Photos</span>
+      </div>
     </div>
 
-    <div id="contentNode">
+    <div id="photosParentNode" class="off">
       <div id="photosNode">No photos found here.</div>
     </div>
 
