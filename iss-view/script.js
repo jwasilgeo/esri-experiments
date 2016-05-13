@@ -18,8 +18,15 @@ require([
   var creditsNode = document.getElementById('creditsNode');
   var errorMessageNode = document.getElementById('errorMessageNode');
 
+  var issLocationUrl = 'http://api.open-notify.org/iss-now.json';
+
+  var updateDelay = 15000;
+
+  var queryTaskExecute;
+
   var map = new Map({
-    basemap: 'satellite'
+    basemap: 'satellite',
+    ground: 'world-elevation'
   });
   // var graphicsLayer = new GraphicsLayer();
   // map.add(graphicsLayer);
@@ -50,6 +57,18 @@ require([
 
   view.then(function() {
     if (checkWebGLSupport()) {
+      errorMessageNode.innerHTML = 'We\'re looking around for the space station. Hold on!';
+      errorMessageNode.style.display = 'flex';
+
+      astroPhotosToggle.style.display = 'flex';
+      contentNode.style.display = 'block';
+
+      view.watch('stationary', function(newValue) {
+        if (newValue) {
+          getPhotos(view.extent.center);
+        }
+      });
+
       establishIssLocation();
     }
   }, function() {
@@ -93,10 +112,8 @@ require([
     }
   });*/
 
-  var openNotifyIssNowUrl = 'http://api.open-notify.org/iss-now.json';
-
   function establishIssLocation() {
-    dojoRequestScript.get(openNotifyIssNowUrl, {
+    dojoRequestScript.get(issLocationUrl, {
       jsonp: 'callback'
     }).then(establishIssLocationSuccess, establishIssLocationError);
   }
@@ -111,6 +128,9 @@ require([
         };
         setTimeout(establishIssLocation, 750);
       } else {
+        errorMessageNode.innerHTML = '';
+        errorMessageNode.style.display = 'none';
+
         updateCameraPosition({
           latitude: res.iss_position.latitude,
           longitude: res.iss_position.longitude
@@ -120,44 +140,62 @@ require([
         contentNode.style.display = 'block';
 
         // update the location after a delay (only once from here)
-        setTimeout(getCurrentIssLocation, 20000);
+        setTimeout(getCurrentIssLocation, updateDelay);
       }
     }
   }
 
   function establishIssLocationError(err) {
     console.error(err);
-    errorMessageNode.innerHTML = 'Whoops, this is awkward. We had trouble finding out where the space station is right now. Please try later!';
+    errorMessageNode.innerHTML = 'We had trouble finding out where the space station is right now. Please try later!';
     errorMessageNode.style.display = 'flex';
 
     setTimeout(function() {
+      errorMessageNode.innerHTML = '';
       errorMessageNode.style.display = 'none';
+
       previousCoordinates = {
         latitude: 0,
         longitude: 0
       };
-      updateCameraPosition({
-        latitude: 0,
-        longitude: 0
-      });
+
+      updateCameraPosition(previousCoordinates);
     }, 6000);
   }
 
   function getCurrentIssLocation() {
-    dojoRequestScript.get(openNotifyIssNowUrl, {
+    dojoRequestScript.get(issLocationUrl, {
       jsonp: 'callback'
     }).then(getCurrentIssLocationSuccess, getCurrentIssLocationError);
   }
 
   function getCurrentIssLocationSuccess(res) {
     if (res.message === 'success') {
-      updateCameraPosition({
-        latitude: res.iss_position.latitude,
-        longitude: res.iss_position.longitude
-      });
+
+      if (
+        (previousCoordinates.latitude.toFixed(3) !== view.camera.position.latitude.toFixed(3)) ||
+        (previousCoordinates.longitude.toFixed(3) !== view.camera.position.longitude.toFixed(3))
+      ) {
+        errorMessageNode.innerHTML = 'Get ready. You\'re going to get moved.';
+        errorMessageNode.style.display = 'flex';
+      }
+
+      setTimeout(function() {
+        errorMessageNode.innerHTML = '';
+        errorMessageNode.style.display = 'none';
+
+        updateCameraPosition({
+          latitude: res.iss_position.latitude,
+          longitude: res.iss_position.longitude
+        });
+
+        // update the location after a delay (continue indefinitely from here)
+        setTimeout(function() {
+          getCurrentIssLocation();
+        }, updateDelay);
+
+      }, 3000);
     }
-    // update the location after a delay (continue indefinitely from here)
-    setTimeout(getCurrentIssLocation, 20000);
   }
 
   function getCurrentIssLocationError(err) {
@@ -178,7 +216,8 @@ require([
     previousCoordinates = nextCoordinates;
 
     // getPhotos(view.extent.center);
-    getPhotos([nextCoordinates.longitude, nextCoordinates.latitude]);
+    // getPhotos([nextCoordinates.longitude, nextCoordinates.latitude]);
+
     view.goTo({
       position: {
         latitude: nextCoordinates.latitude,
@@ -212,14 +251,22 @@ require([
         })
       }));*/
 
-      var queryTask = new QueryTask({
+      queryTask = new QueryTask({
         url: '//services2.arcgis.com/gLefH1ihsr75gzHY/arcgis/rest/services/ISSPhotoLocations_20_34/FeatureServer/0',
       });
       var query = new Query();
       query.geometry = searchGeometry;
       query.returnGeometry = false;
       query.outFields = ['missionRollFrame', 'mission', 'roll', 'frame'];
-      queryTask.execute(query).then(function(results) {
+
+      // if (queryTaskExecute && !queryTaskExecute.isResolved()) {
+      if (queryTaskExecute && !queryTaskExecute.isFulfilled()) {
+        queryTaskExecute.cancel();
+      }
+
+      queryTaskExecute = queryTask.execute(query);
+
+      queryTaskExecute.then(function(results) {
 
         while (photosNode.hasChildNodes()) {
           photosNode.removeChild(photosNode.firstChild);
