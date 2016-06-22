@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <title>Antipodes</title>
+
+    <link rel="stylesheet" href="//js.arcgis.com/4.0/esri/css/view.css">
+
+    <style>
+        html, body {
+            padding: 0;
+            margin: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: "Avenir Next W01","Avenir Next",Avenir,"Helvetica Neue",Helvetica,Arial,sans-serif
+        }
+        .esri-view {
+            height: 100%;
+        }
+        .panel {
+            float: left;
+            width: 50%;
+        }
+        .major {
+            height: 100%;
+        }
+        .minor {
+            height: 50%;
+        }
+        .crosshairs {
+            color: white;
+            font-size: 3em;
+            line-height: 0;
+            font-weight: bold;
+            cursor: pointer;
+            display: -webkit-box;
+            display: -ms-flexbox;
+            display: -webkit-flex;
+            display: flex;
+             -webkit-justify-content: center; 
+            justify-content: center;
+             -webkit-align-items: center; 
+            align-items: center;
+            height: 100%;
+        }
+        .stats {
+            font-size: 5em;
+            text-align: center;
+            background-color: black;
+            color: white;
+        }
+        .a-bit-smaller {
+            font-size: 0.5em;
+        }
+        .a-bit-smaller-2x {
+            font-size: 0.25em;
+        }
+        .bottom-left-panel {
+            padding: 0 0 4px 4px;
+            position: absolute;
+            bottom: 0;
+            text-align: left;
+        }
+        .top-right-panel {
+            padding: 4px 4px 0 0;
+            text-align: right;
+        }
+        .credits {
+            display: none;
+            padding: 5px;
+            line-height: 1.5em;
+            background-color: rgba(255, 255, 255, 0.65);
+        }
+        .credits a {
+            color: #323232;
+            margin: 0 7px;
+            font-size: 1.15em;
+            font-weight: bold;
+        }
+        .upside-down {
+            transform: rotate(180deg);
+        }
+        .title-text {
+            font-size: calc(1vw + 0.25vh + 5vmin);
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="panel major">
+        <div id="sceneViewDivA">
+            <div id="creditsNode" class="esri-widget esri-component credits">
+                <a target="_blank" href="https://twitter.com/JWasilGeo">@JWasilGeo</a>
+                |
+                <a target="_blank" href="https://github.com/jwasilgeo/esri-experiments">Github</a>
+            </div>
+        </div>
+    </div>
+    <div class="panel minor">
+        <div id="sceneViewDivB">
+            <!-- move this to be a child of <div class="esri-ui"... > in the scene view -->
+            <div id="crosshairs" class="crosshairs"><div>+</div></div>
+        </div>
+    </div>
+    <div class="panel minor stats">
+        <div class="top-right-panel">
+            <div class="a-bit-smaller">THEN LOOK UP ^</div>
+            <!-- <div class="a-bit-smaller-2x">(that's the opposite side of the Earth!)</div> -->
+            <div id="altitudeB">---</div>
+        </div>
+
+        <div class="title-text upside-down"><a href="https://en.wikipedia.org/wiki/Antipodes">ANTIPODES</a></div>
+        <div class="title-text"><a href="https://en.wikipedia.org/wiki/Antipodes">ANTIPODES</a></div>
+
+        <div class="bottom-left-panel">  
+            <div id="altitudeA">---</div>
+            <div class="a-bit-smaller">< INTERACT HERE</div>
+        </div>
+    </div>
+
+    <script src="//js.arcgis.com/4.0/"></script>
+
+    <script src="script.js"></script>
+</body>
+</html>
