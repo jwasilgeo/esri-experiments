@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>Aquarelle</title>
+
+  <link rel="stylesheet" href="//js.arcgis.com/4.1/esri/css/view.css">
+
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://code.getmdl.io/1.2.1/material.indigo-pink.min.css" />
+
+  <style>
+    html,
+    body {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: "Avenir Next W01", "Avenir Next", Avenir, "Helvetica Neue", Helvetica, Arial, sans-serif
+    }
+
+    .esri-view {
+      height: 100%;
+    }
+
+    .controls-node {
+      display: none;
+      background-color: rgba(255, 255, 255, 0.65);
+    }
+
+    .credits {
+      display: none;
+      padding: 5px;
+      line-height: 1.5em;
+      background-color: rgba(255, 255, 255, 0.65);
+    }
+
+    .credits a {
+      color: #323232;
+      margin: 0 7px;
+      font-size: 1.15em;
+      font-weight: bold;
+    }
+
+  </style>
+</head>
+
+<body>
+  <div id="mapViewDiv">
+    <div id="controlsNode" class="controls-node">
+      fromAmplitude <input class="mdl-slider mdl-js-slider" type="range" min="0" max="100" value="50" tabindex="0">
+      toAmplitude <input class="mdl-slider mdl-js-slider" type="range" min="0" max="100" value="0" tabindex="0">
+      fromFrequency <input class="mdl-slider mdl-js-slider" type="range" min="0" max="15" value="8" tabindex="0">
+      toFrequency <input class="mdl-slider mdl-js-slider" type="range" min="0" max="15" value="7" tabindex="0">
+      fromOffset <input class="mdl-slider mdl-js-slider" type="range" min="-100" max="0" value="-30" tabindex="0">
+      duration <input class="mdl-slider mdl-js-slider" type="range" min="1000" max="10000" value="8000" step="500" tabindex="0">
+    </div>
+    <div id="creditsNode" class="esri-widget esri-component credits">
+      <a target="_blank" href="//twitter.com/JWasilGeo">@JWasilGeo</a> |
+      <a target="_blank" href="//github.com/jwasilgeo/esri-experiments">Github</a>
+    </div>
+  </div>
+
+  <script src="//cdn.rawgit.com/mrdoob/three.js/r81/build/three.js"></script>
+  <script src="//cdn.rawgit.com/Ramotion/aquarelle/master/Aquarelle.js"></script>
+  <script src="//cdn.rawgit.com/mrdoob/three.js/r81/examples/js/postprocessing/EffectComposer.js"></script>
+  <script src="//cdn.rawgit.com/mrdoob/three.js/r81/examples/js/postprocessing/ClearPass.js"></script>
+  <script src="//cdn.rawgit.com/Ramotion/aquarelle/master/AquarellePass.js"></script>
+  <script src="//cdn.rawgit.com/mrdoob/three.js/r81/examples/js/postprocessing/ShaderPass.js"></script>
+  <script src="//cdn.rawgit.com/mrdoob/three.js/r81/examples/js/shaders/CopyShader.js"></script>
+  <script src="//bl.ocks.org/mbostock/raw/4241134/d3.geom.contour.min.js"></script>
+
+  <script defer src="//code.getmdl.io/1.2.1/material.min.js"></script>
+
+  <script src="//js.arcgis.com/4.1/"></script>
+  <script src="script.js"></script>
+</body>
+
+</html>
