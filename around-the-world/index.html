@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>Around the World</title>
+
+  <link rel="stylesheet" href="//js.arcgis.com/4.1/esri/css/view.css">
+  <link rel="stylesheet" href="//unpkg.com/dragdealer@0.9.9/src/dragdealer.css">
+
+  <style>
+    html,
+    body,
+    .esri-view {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+    }
+
+    .rotate-control {
+      display: none;
+      width: 300px;
+      border-radius: 50px;
+      top: 15px;
+      left: 0;
+      right: 0;
+      margin: 0 auto;
+      /*position: absolute;*/
+    }
+
+    .rotate-control.esri-widget {
+      background-color: transparent;
+    }
+
+    .dragdealer {
+      height: 40px;
+      background-color: transparent;
+      border-radius: 50px;
+      /*border: 2px solid #f44336;*/
+      background-color: rgba(244, 67, 54, 0.65);
+    }
+
+    .dragdealer:hover {
+      cursor: pointer;
+    }
+
+    .handle.esri-widget-button {
+      font-size: 20px;
+      height: 40px;
+      width: 40px;
+      color: white;
+      background-color: #f44336;
+      border-radius: 100%;
+      transition: width 0.1s ease-in, height 0.1s ease-in, top 0.1s ease-in, font-size 0.1s ease-in;
+    }
+
+    /*.handle.esri-widget-button:hover,*/
+    .handle.esri-widget-button:active {
+      font-size: 30px;
+      height: 50px;
+      width: 50px;
+      top: -5px;
+      color: white;
+      background-color: #673ab7;
+    }
+
+    .instructions {
+      display: none;
+      width: 300px;
+      padding: 5px;
+      top: 70px;
+      left: 0;
+      right: 0;
+      margin: 0 auto;
+      transition: opacity 0.3s ease-in;
+    }
+
+    .credits {
+        display: none;
+        padding: 5px;
+        line-height: 1.5em;
+        background-color: rgba(255, 255, 255, 0.65);
+    }
+    .credits a {
+        color: #323232;
+        margin: 0 7px;
+        font-size: 1.15em;
+        font-weight: bold;
+    }
+  </style>
+
+</head>
+
+<body>
+  <div id="viewDiv">
+
+    <div id="rotateControl" class="rotate-control esri-widget">
+      <div id="dragdealerSlider" class="dragdealer">
+        <div class="handle esri-button esri-widget-button esri-widget esri-interactive">
+          <span class="esri-icon-rotate"></span>
+        </div>
+      </div>
+    </div>
+
+    <div id="instructions" class="esri-widget esri-component instructions">
+      <ol style="padding-left: 25px;">
+        <li>Click on the Earth to stand somewhere</li>
+        <li>Move the red slider to face any direction</li>
+        <li>Follow the line to see what lies beyond...</li>
+      </ol>
+    </div>
+
+    <div id="credits" class="esri-widget esri-component credits">
+      <a target="_blank" href="https://twitter.com/JWasilGeo">@JWasilGeo</a> |
+      <a target="_blank" href="https://github.com/jwasilgeo/faroe-islands-whaling">Github</a>
+    </div>
+
+  </div>
+
+  <script>
+    var dojoConfig = {
+      isDebug: true,
+      async: true
+    };
+  </script>
+
+  <script src="//unpkg.com/dragdealer@0.9.9/src/dragdealer.js"></script>
+  <script src="//js.arcgis.com/4.1/"></script>
+  <script src="script.js"></script>
+</body>
+
+</html>
