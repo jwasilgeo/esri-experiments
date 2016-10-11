@@ -234,11 +234,15 @@ require([
   function viewWidthChange(widthBreakpoint) {
     if (widthBreakpoint === 'xsmall') {
       view.ui.move(rotateControl, 'manual');
-      view.ui.move(instructionsNode, 'manual');
+      if (instructionsNode.style.opacity !== '0') {
+        view.ui.move(instructionsNode, 'manual');
+      }
       view.ui.move('zoom', 'bottom-left');
     } else {
       view.ui.move(rotateControl, 'top-right');
-      view.ui.move(instructionsNode, 'top-right');
+      if (instructionsNode.style.opacity !== '0') {
+        view.ui.move(instructionsNode, 'top-right');
+      }
       view.ui.move('zoom', 'top-left');
     }
   }
