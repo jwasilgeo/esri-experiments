@@ -19,7 +19,12 @@ require([
   dojoRequestScript,
   Basemap, esriConfig, Circle, /*Graphic, GraphicsLayer,*/ WebTileLayer, Map, SimpleFillSymbol, QueryTask, Query, SceneView, BasemapToggle
 ) {
-  esriConfig.request.corsEnabledServers.push('a.tile.stamen.com', 'b.tile.stamen.com', 'c.tile.stamen.com', 'd.tile.stamen.com');
+  esriConfig.request.corsEnabledServers.push(
+    'stamen-tiles-a.a.ssl.fastly.net',
+    'stamen-tiles-b.a.ssl.fastly.net',
+    'stamen-tiles-c.a.ssl.fastly.net',
+    'stamen-tiles-d.a.ssl.fastly.net'
+  );
 
   var previousCoordinates;
 
@@ -92,7 +97,7 @@ require([
   function checkWebGLSupport() {
     if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|Opera Mini|IEMobile/i.test(navigator.userAgent)) {
       errorMessageNode.innerHTML = 'You\'ll need a device/browser that supports WebGL. This must be awkward for you. Here\'s a gif instead.';
-      errorMessageNode.setAttribute('class', 'errorMessage errorBackground');
+      errorMessageNode.setAttribute('class', 'error-message error-background');
       return false;
     } else {
       return true;
@@ -105,7 +110,7 @@ require([
     astroPhotosToggle.style.display = 'flex';
     photosParentNode.style.display = 'block';
 
-    astroPhotosToggle.addEventListener('click', function(evt) {
+    astroPhotosToggle.addEventListener('click', function() {
       if (photosParentNode.style.display === 'none') {
         photosParentNode.style.display = 'block';
       } else {
@@ -137,16 +142,18 @@ require([
 
   function addCustomBasemap(view) {
     var stamenBasemap = new Basemap({
-      baseLayers: [new WebTileLayer({
-        urlTemplate: 'http://{subDomain}.tile.stamen.com/toner/{level}/{col}/{row}.png',
-        subDomains: ['a', 'b', 'c', 'd'],
-        copyright: [
-          'Map tiles by <a href="http://stamen.com">Stamen Design</a>, ',
-          'under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. ',
-          'Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, ',
-          'under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.'
-        ].join()
-      })],
+      baseLayers: [
+        new WebTileLayer({
+          urlTemplate: '//stamen-tiles-{subDomain}.a.ssl.fastly.net/toner/{level}/{col}/{row}.png',
+          subDomains: ['a', 'b', 'c', 'd'],
+          copyright: [
+            'Map tiles by <a href="http://stamen.com">Stamen Design</a>, ',
+            'under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. ',
+            'Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, ',
+            'under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.'
+          ].join()
+        })
+      ],
       title: 'Toner',
       id: 'toner',
       thumbnailUrl: '//stamen-tiles.a.ssl.fastly.net/toner/10/177/409.png'
@@ -300,7 +307,7 @@ require([
         })
       }));*/
 
-      queryTask = new QueryTask({
+      var queryTask = new QueryTask({
         url: '//services2.arcgis.com/gLefH1ihsr75gzHY/arcgis/rest/services/ISSPhotoLocations_20_34/FeatureServer/0',
       });
       var query = new Query();
@@ -323,7 +330,7 @@ require([
 
         var docFragment = document.createDocumentFragment();
 
-        results.features.slice(0, 25).forEach(function(feature, idx) {
+        results.features.slice(0, 25).forEach(function(feature) {
           var div = document.createElement('div');
           var a = document.createElement('a');
           a.href = '//eol.jsc.nasa.gov/SearchPhotos/photo.pl?mission=' + feature.attributes.mission + '&roll=' + feature.attributes.roll + '&frame=' + feature.attributes.frame;

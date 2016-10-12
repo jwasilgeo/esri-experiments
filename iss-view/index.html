@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
-
-  <meta name="description" content="Take a ride on the International Space Station with Esri ArcGIS API for JavaScript">
+  <meta name="description" content="Take a ride on the International Space Station and explore NASA astronaut photography with the Esri ArcGIS API for JavaScript.">
 
   <title>Take a ride on the ISS</title>
   <link rel="icon" href="favicon.ico" type="image/x-icon">
@@ -12,50 +12,62 @@
   <link rel="stylesheet" href="//js.arcgis.com/4.1/esri/css/main.css">
   <style>
     body {
-      font-family: "Avenir Next W01","Avenir Next W00","Avenir Next","Avenir","Helvetica Neue","Helvetica","Arial",sans-serif
+      font-family: "Avenir Next W01", "Avenir Next W00", "Avenir Next", "Avenir", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
     }
-    html, body, .esri-view {
+
+    html,
+    body,
+    .esri-view {
       padding: 0;
       margin: 0;
       height: 100%;
       background-color: #000;
     }
+
     #photosParentNode {
       padding: 5px;
       background-color: rgba(255, 255, 255, 0.35);
       max-height: 600px
     }
+
     #smallButtonsControl {
       display: flex;
     }
+
     #photosNode {
       padding-right: 22px;
       overflow-y: auto;
       overflow-x: hidden;
       max-height: 600px;
     }
+
     #daylightToggle {
       margin: 0 8px 0 0;
     }
+
     #hoursAdjustment {
       width: 100px;
       margin: 6px 8px 0 0;
     }
+
     .off {
       display: none;
     }
+
     .credits {
       display: none;
       padding: 5px;
       line-height: 1.5em;
       background-color: rgba(255, 255, 255, 0.65);
     }
+
     .credits a {
       color: #323232;
       margin: 0 7px;
       font-size: 1.15em;
       font-weight: bold;
     }
+
     .credits .iss,
     .credits .iss a {
       margin: 0;
@@ -63,10 +75,12 @@
       font-weight: normal;
       text-align: center;
     }
+
     .bigger-icon {
       font-size: 22px;
     }
-    .errorMessage {
+
+    .error-message {
       display: none;
       flex-direction: column;
       align-items: center;
@@ -79,7 +93,8 @@
       font-weight: bold;
       cursor: default;
     }
-    .errorBackground {
+
+    .error-background {
       display: flex;
       top: 20%;
       left: 10%;
@@ -90,12 +105,15 @@
       background-size: 100%;
       background-repeat: no-repeat;
     }
+
     /* slightly smaller basemap toggle */
     .esri-basemap-toggle {
       height: 58px;
       width: 53px;
     }
-    .esri-basemap-toggle__container, .esri-basemap-toggle__image {
+
+    .esri-basemap-toggle__container,
+    .esri-basemap-toggle__image {
       height: 53px;
       width: 53px;
     }
@@ -107,15 +125,15 @@
   <div id="viewNode">
     <div id="smallButtonsControl">
       <div>
-        <input id="hoursAdjustment" class="off" type="range" name="" min="-12" max="12" step="0.5" value="0"  title="Adjust Daylight" >
+        <input id="hoursAdjustment" class="off" type="range" name="" min="-12" max="12" step="0.5" value="0" title="Adjust Daylight">
       </div>
       <div id="daylightToggle" role="button" tabindex="0" class="off esri-widget-button esri-widget esri-component">
-          <span aria-hidden="true" class="esri-icon esri-icon-environment-settings bigger-icon" title="Adjust Daylight"></span>
-          <span class="esri-icon-font-fallback-text">Daylight</span>
+        <span aria-hidden="true" class="esri-icon esri-icon-environment-settings bigger-icon" title="Adjust Daylight"></span>
+        <span class="esri-icon-font-fallback-text">Daylight</span>
       </div>
       <div id="astroPhotosToggle" role="button" tabindex="0" class="off esri-widget-button esri-widget esri-component">
-          <span aria-hidden="true" class="esri-icon esri-icon-media bigger-icon" title="Astronaut Photos"></span>
-          <span class="esri-icon-font-fallback-text">Astronaut Photos</span>
+        <span aria-hidden="true" class="esri-icon esri-icon-media bigger-icon" title="Astronaut Photos"></span>
+        <span class="esri-icon-font-fallback-text">Astronaut Photos</span>
       </div>
     </div>
 
@@ -124,21 +142,20 @@
     </div>
 
     <div id="creditsNode" class="esri-widget esri-component credits">
-        <a target="_blank" href="https://twitter.com/JWasilGeo">@JWasilGeo</a>
-        |
-        <a target="_blank" href="https://github.com/jwasilgeo/esri-experiments/tree/master/iss-view">Github</a>
-        <div class="iss">
-          ISS location © <a href="http://open-notify.org/" target="_blank">Open Notify</a>
-        </div>
+      <a target="_blank" href="https://twitter.com/JWasilGeo">@JWasilGeo</a>
+      |
+      <a target="_blank" href="https://github.com/jwasilgeo/esri-experiments/tree/master/iss-view">Github</a>
+      <div class="iss">
+        ISS location © <a href="http://open-notify.org/" target="_blank">Open Notify</a>
+      </div>
     </div>
 
-    <div id="errorMessageNode" class="errorMessage"></div>
+    <div id="errorMessageNode" class="error-message"></div>
   </div>
 
   <script src="//js.arcgis.com/4.1/"></script>
-
   <script src="//unpkg.com/geodesy/latlon-spherical"></script>
-
   <script src="script.js"></script>
 </body>
+
 </html>

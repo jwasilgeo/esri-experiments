@@ -28,6 +28,13 @@ require([
   LineSymbol3D, LineSymbol3DLayer, ObjectSymbol3DLayer, PathSymbol3DLayer, PointSymbol3D, SimpleLineSymbol, SimpleMarkerSymbol,
   ViewModule
 ) {
+  esriConfig.request.corsEnabledServers.push(
+    'stamen-tiles-a.a.ssl.fastly.net',
+    'stamen-tiles-b.a.ssl.fastly.net',
+    'stamen-tiles-c.a.ssl.fastly.net',
+    'stamen-tiles-d.a.ssl.fastly.net'
+  );
+
   var rotateControl = document.getElementById('rotateControl'),
     handleOuterNode = document.querySelector('.handle'),
     handleInnerNode = document.querySelector('.esri-icon-rotate'),
@@ -71,14 +78,6 @@ require([
       })]
     });
 
-  // add Stamen tile servers to esriConfig cors
-  esriConfig.request.corsEnabledServers.push(
-    'stamen-tiles-a.a.ssl.fastly.net',
-    'stamen-tiles-b.a.ssl.fastly.net',
-    'stamen-tiles-c.a.ssl.fastly.net',
-    'stamen-tiles-d.a.ssl.fastly.net'
-  );
-
   // geodesic lines and antipodes will be added to this graphics layer
   var analysisGraphicsLayer = new GraphicsLayer();
 
@@ -91,10 +90,12 @@ require([
         new WebTileLayer({
           urlTemplate: '//stamen-tiles-{subDomain}.a.ssl.fastly.net/toner/{level}/{col}/{row}.png',
           subDomains: ['a', 'b', 'c', 'd'],
-          copyright: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, ' +
-            'under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. ' +
-            'Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, ' +
+          copyright: [
+            'Map tiles by <a href="http://stamen.com">Stamen Design</a>, ',
+            'under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. ',
+            'Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, ',
             'under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.'
+          ].join()
         }),
         analysisGraphicsLayer
       ]
@@ -106,6 +107,11 @@ require([
       components: ['attribution', 'zoom']
     }
   });
+
+  if (!isMobile) {
+    // set SceneView atmosphere to best quality
+    view.environment.atmosphere.quality = 'high';
+  }
 
   view.then(function(view) {
     // position and show the credits element and rotate control element
