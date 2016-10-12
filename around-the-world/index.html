@@ -26,6 +26,7 @@
       left: 0;
       right: 0;
       margin: 0 auto;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
 
     .rotate-control.esri-widget {
@@ -51,6 +52,7 @@
       background-color: #f44336;
       border-radius: 100%;
       transition: width 0.1s ease-in, height 0.1s ease-in, top 0.1s ease-in, font-size 0.1s ease-in;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
 
     .handle.esri-widget-button:active {
@@ -62,7 +64,7 @@
       background-color: #673ab7;
     }
 
-    .instructions {
+    .info-text-box {
       display: none;
       width: 300px;
       padding: 5px;
@@ -71,6 +73,18 @@
       right: 0;
       margin: 0 auto;
       transition: opacity 0.3s ease-in;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      background-color: rgba(255, 255, 255, 0.9);
+    }
+
+    .antipode-info {
+      text-align: center;
+      opacity: 0;
+    }
+    .antipode-info a {
+      color: #f44336;
+      font-weight: bold;
+      text-decoration: underline;
     }
 
     .credits {
@@ -100,12 +114,16 @@
       </div>
     </div>
 
-    <div id="instructions" class="esri-widget esri-component instructions">
+    <div id="instructions" class="esri-widget esri-component info-text-box">
       <ol style="padding-left: 25px;">
-        <li>Click on the Earth to stand somewhere</li>
-        <li>Move the red slider to face any direction</li>
+        <li>Click on the Earth to stand somewhere.</li>
+        <li>Move the red slider to face any direction.</li>
         <li>Follow the line to see what lies beyond...</li>
       </ol>
+    </div>
+
+    <div id="antipodeInfo" class="esri-widget esri-component info-text-box antipode-info">
+      The two red markers are <a href="https://jwasilgeo.github.io/esri-experiments/antipodes/" target="_blank">antipodes</a>.
     </div>
 
     <div id="credits" class="esri-widget esri-component credits">

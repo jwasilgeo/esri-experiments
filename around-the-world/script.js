@@ -33,6 +33,7 @@ require([
     handleInnerNode = document.querySelector('.esri-icon-rotate'),
     creditsNode = document.getElementById('credits'),
     instructionsNode = document.getElementById('instructions'),
+    antipodeInfoNode = document.getElementById('antipodeInfo'),
     dragdealerElement = null,
     clickedMapPoint = null,
     previousTimeoutID = null;
@@ -54,7 +55,8 @@ require([
 
   var pointSymbol = isMobile ?
     new SimpleMarkerSymbol({
-      color: '#f44336'
+      color: '#f44336',
+      outline: null
     }) :
     new PointSymbol3D({
       symbolLayers: [new ObjectSymbol3DLayer({
@@ -115,6 +117,8 @@ require([
 
     view.ui.add(instructionsNode);
     instructionsNode.style.display = 'block';
+
+    view.ui.add(antipodeInfoNode);
 
     // establish conditional DOM properties based on the view width
     viewWidthChange(view.widthBreakpoint);
@@ -204,12 +208,22 @@ require([
       // render the geodesic line and the antipodes in the view
       handleGeodesicDensify(geodesicLine, wrapAroundLine);
 
-      // hide the instructions text
-      if (instructionsNode.style.opacity !== '0') {
+      // hide the instructions text (once)
+      if (instructionsNode.style.display !== 'none') {
+        // with css transition this will fade out
         instructionsNode.style.opacity = '0';
+        // also set display to be none after the transition
+        setTimeout(function() {
+          instructionsNode.style.display = 'none';
+          viewWidthChange(view.widthBreakpoint);
+          antipodeInfoNode.style.display = 'block';
+          setTimeout(function() {
+            antipodeInfoNode.style.opacity = '1';
+          }, 300);
+        }, 300);
       }
     }, function(err) {
-      console.log(err);
+      console.error(err);
     });
   }
 
@@ -234,14 +248,18 @@ require([
   function viewWidthChange(widthBreakpoint) {
     if (widthBreakpoint === 'xsmall') {
       view.ui.move(rotateControl, 'manual');
-      if (instructionsNode.style.opacity !== '0') {
+      if (instructionsNode.style.display !== 'none') {
         view.ui.move(instructionsNode, 'manual');
+      } else {
+        view.ui.move(antipodeInfoNode, 'manual');
       }
       view.ui.move('zoom', 'bottom-left');
     } else {
       view.ui.move(rotateControl, 'top-right');
-      if (instructionsNode.style.opacity !== '0') {
+      if (instructionsNode.style.display !== 'none') {
         view.ui.move(instructionsNode, 'top-right');
+      } else {
+        view.ui.move(antipodeInfoNode, 'top-right');
       }
       view.ui.move('zoom', 'top-left');
     }
