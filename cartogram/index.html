@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta name="description" content="">
+
+  <title>Cartogram</title>
+
+  <link rel="stylesheet" href="//js.arcgis.com/4.0/esri/css/view.css">
+  <style>
+    html,
+    body,
+    .esri-view {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+    }
+
+    .info-text-box {
+      display: none;
+      width: 300px;
+      padding: 5px;
+      top: 70px;
+      left: 0;
+      right: 0;
+      margin: 0 auto;
+      transition: opacity 0.3s ease-in;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      background-color: rgba(255, 255, 255, 0.9);
+    }
+
+    .credits {
+      display: none;
+      padding: 5px;
+      line-height: 1.5em;
+      background-color: rgba(255, 255, 255, 0.65);
+    }
+
+    .credits a {
+      color: #323232;
+      margin: 0 7px;
+      font-size: 1.15em;
+      font-weight: bold;
+    }
+  </style>
+
+</head>
+
+<body>
+  <div id="viewDiv">
+
+    <div id="instructions" class="esri-widget esri-component info-text-box">
+      <p>Cartograms!</p>
+    </div>
+
+    <div id="credits" class="esri-widget esri-component credits">
+      <a target="_blank" href="https://twitter.com/JWasilGeo">@JWasilGeo</a>
+      |
+      <a target="_blank" href="https://github.com/jwasilgeo/esri-experiments">Github</a>
+    </div>
+
+  </div>
+
+  <script src="//js.arcgis.com/4.0/"></script>
+  <script src="script.js"></script>
+</body>
+
+</html>
