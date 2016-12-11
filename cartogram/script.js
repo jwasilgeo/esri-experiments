@@ -9,11 +9,14 @@ require([
   'esri/layers/WebTileLayer',
   'esri/Map',
 
-  'esri/views/MapView'
+  'esri/views/MapView',
+
+  'dojo/Deferred',
 ], function(
   esriConfig,
   geometryEngine, geometryEngineAsync, Graphic, FeatureLayer, GraphicsLayer, WebTileLayer, Map,
-  MapView
+  MapView,
+  Deferred
 ) {
   esriConfig.request.corsEnabledServers.push(
     'stamen-tiles-a.a.ssl.fastly.net',
@@ -26,10 +29,16 @@ require([
     instructionsNode = document.getElementById('instructions');
 
   // cartogram graphics will be added to this graphics layer
-  var cartogramGraphicsLayer = new GraphicsLayer();
+  var cartogramGraphicsLayer = new GraphicsLayer({
+    popupTemplate: {
+      title: '{STATE_NAME}',
+      content: '{*}'
+    }
+  });
 
   var statesFeatureLayer = new FeatureLayer({
-    url: '//services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0'
+    url: '//services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0',
+    outFields: ['*']
   });
 
   // the view is either a MapView or a SceneView
@@ -52,8 +61,8 @@ require([
         cartogramGraphicsLayer
       ]
     }),
-    center: [-100, 25],
-    zoom: 3,
+    center: [-100, 35],
+    zoom: 5,
     ui: {
       components: ['attribution', 'zoom']
     }
@@ -75,33 +84,57 @@ require([
     });
   });
 
+  var averageStateSize;
+
   view.whenLayerView(statesFeatureLayer).then(function(lyrView) {
     lyrView.watch('updating', function(val) {
       if (!val) {
         // get all the features available for drawing
         lyrView.queryFeatures().then(function(stateGraphics) {
-          var averageStateSize = stateGraphics.reduce(function(previousValue, currentGraphic) {
-            if (previousValue.geometry) {
-              return geometryEngine.geodesicArea(previousValue.geometry, 'square-kilometers') +
-              geometryEngine.geodesicArea(currentGraphic.geometry, 'square-kilometers');
-            } else {
-              return previousValue +
-              geometryEngine.geodesicArea(currentGraphic.geometry, 'square-kilometers');
-            }
-          }) / stateGraphics.length;
+
+          averageStateSize = stateGraphics
+            .map(function(graphic) {
+              return geometryEngine.geodesicArea(graphic.geometry, 'square-kilometers');
+            })
+            .reduce(function(previousValue, currentValue) {
+              return previousValue + currentValue;
+            }) / stateGraphics.length;
 
           console.log(averageStateSize);
 
           lyrView.layer.visible = false;
 
-          stateGraphics.forEach(function(stateGraphic) {
-            geometryEngineAsync.geodesicBuffer(stateGraphic.geometry, -50, 'kilometers')
-              .then(function(bufferGeometry) {
+          stateGraphics.forEach(function(stateGraphic, idx) {
+            geometryEngineAsync.generalize(stateGraphic.geometry, 30, true, 'kilometers').then(function(geom) {
+              doTheThing(stateGraphic.attributes.STATE_NAME, geom, 1).then(function(res) {
+                console.log('what?', res);
+                var symbol = lyrView.layer.renderer.symbol;
+                symbol.color = [0,0,0,0.3];
+                symbol.outline.width = 2;
                 cartogramGraphicsLayer.add(new Graphic({
-                  geometry: bufferGeometry,
-                  symbol: lyrView.layer.renderer.symbol
+                  geometry: res,
+                  symbol: lyrView.layer.renderer.symbol,
+                  attributes: stateGraphic.attributes
                 }));
               });
+            });
+
+            return;
+
+            // geometryEngineAsync.generalize(stateGraphic.geometry.extent.expand(0.75)).then(function(geom) {
+            // geometryEngineAsync.convexHull(stateGraphic.geometry).then(function(geom) {
+            geometryEngineAsync.buffer(stateGraphic.geometry, -50, 'kilometers').then(function(geom) {
+
+              // doTheThing(geom, 1, lyrView.layer.renderer.symbol).then(function(res) {
+              // console.info(geom);
+              cartogramGraphicsLayer.add(new Graphic({
+                geometry: geom,
+                symbol: lyrView.layer.renderer.symbol
+              }));
+              // });
+            });
+
+
           });
 
         });
@@ -109,6 +142,30 @@ require([
       }
     });
   });
+
+  function doTheThing(name, geometry, posOrNeg, symbol) {
+    // var dfd = new Deferred();
+
+    return geometryEngineAsync.buffer(geometry, 50 * posOrNeg, 'kilometers', true).then(function(bufferGeometry) {
+
+      // var bufferGeometry = geometryEngine.buffer(geometry, 50 * posOrNeg, 'kilometers', true);
+      var geometrySize = geometryEngine.geodesicArea(bufferGeometry, 'square-kilometers');
+      if (geometrySize > (averageStateSize - 50000) && geometrySize < (averageStateSize + 50000)) {
+        console.log(`${name}: good enough`);
+        return bufferGeometry;
+        // dfd.resolve(bufferGeometry);
+      } else if (geometrySize < (averageStateSize - 50000)) {
+        console.log(`${name}: too small`);
+        return doTheThing(name, bufferGeometry, 1, symbol);
+      } else if (geometrySize > (averageStateSize + 50000)) {
+        console.log(`${name}: too big`);
+        return doTheThing(name, bufferGeometry, -1, symbol);
+      }
+
+    });
+
+    // return dfd.promise;
+  }
 
   function viewWidthChange(widthBreakpoint) {
     if (widthBreakpoint === 'xsmall') {
