@@ -89,6 +89,14 @@
       text-decoration: underline;
     }
 
+    .switch-view {
+      display: none;
+    }
+
+    .switch-view a {
+      height: 14px;
+    }
+
     .credits {
       display: none;
       padding: 5px;
@@ -127,6 +135,12 @@
 
     <div id="antipodeInfo" class="esri-widget esri-component info-text-box antipode-info">
       The two red markers are <a href="https://jwasilgeo.github.io/esri-experiments/antipodes/" target="_blank">antipodes</a>.
+    </div>
+
+    <div id="switchView" class="esri-widget-button esri-widget esri-component switch-view">
+      <a href="https://jwasilgeo.github.com/esri-experiments/around-the-world/?isMobile=1" title="Switch to 2D map">
+        <span class="esri-icon esri-icon-maps"></span>
+      </a>
     </div>
 
     <div id="credits" class="esri-widget esri-component credits">

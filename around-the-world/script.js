@@ -1,9 +1,6 @@
-var isMobile = (function() {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|Opera Mini|IEMobile/i.test(navigator.userAgent);
-})();
-
 require([
   'esri/config',
+  'esri/core/urlUtils',
 
   'esri/geometry/geometryEngineAsync',
   'esri/geometry/Point',
@@ -21,12 +18,16 @@ require([
   'esri/symbols/SimpleLineSymbol',
   'esri/symbols/SimpleMarkerSymbol',
 
-  'esri/views/' + (isMobile ? 'MapView' : 'SceneView')
+  'esri/views/MapView',
+  'esri/views/SceneView',
+
+  'esri/widgets/Locate'
 ], function(
-  esriConfig,
+  esriConfig, urlUtils,
   geometryEngineAsync, Point, Polyline, Graphic, GraphicsLayer, WebTileLayer, Map,
   LineSymbol3D, LineSymbol3DLayer, ObjectSymbol3DLayer, PathSymbol3DLayer, PointSymbol3D, SimpleLineSymbol, SimpleMarkerSymbol,
-  ViewModule
+  MapView, SceneView,
+  Locate
 ) {
   esriConfig.request.corsEnabledServers.push(
     'stamen-tiles-a.a.ssl.fastly.net',
@@ -36,14 +37,23 @@ require([
   );
 
   var rotateControl = document.getElementById('rotateControl'),
-    handleOuterNode = document.querySelector('.handle'),
+    // handleOuterNode = document.querySelector('.handle'),
     handleInnerNode = document.querySelector('.esri-icon-rotate'),
     creditsNode = document.getElementById('credits'),
     instructionsNode = document.getElementById('instructions'),
     antipodeInfoNode = document.getElementById('antipodeInfo'),
+    switchViewNode = document.getElementById('switchView'),
     dragdealerElement = null,
     clickedMapPoint = null,
-    previousTimeoutID = null;
+    previousTimeoutID = null,
+    locateWidget;
+
+  var isMobile = (
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|Opera Mini|IEMobile/i.test(navigator.userAgent) ||
+    (urlUtils.urlToObject(window.location.href).query && !!(Number(urlUtils.urlToObject(window.location.href).query.isMobile)))
+  );
+
+  var ViewModule = isMobile ? MapView : SceneView;
 
   // establish conditional line and point symbols depending on if MapView or SceneView
   var lineSymbol = isMobile ?
@@ -102,7 +112,7 @@ require([
     }),
     center: [0, 0],
     // zoom out a little if on a mobile device
-    zoom: isMobile ? 1 : 3,
+    zoom: 2,
     ui: {
       components: ['attribution', 'zoom']
     }
@@ -126,6 +136,33 @@ require([
 
     view.ui.add(antipodeInfoNode);
 
+    // conditionally show the button to switch to 2d mapview
+    if (!isMobile) {
+      view.ui.add(switchViewNode, 'bottom-left');
+      switchViewNode.style.display = 'flex';
+    }
+
+    //
+    locateWidget = new Locate({
+      view: view,
+      goToLocationEnabled: false,
+      graphic: false
+    });
+    locateWidget.startup();
+    view.ui.add(locateWidget, 'bottom-left');
+    locateWidget.on('locate', function(e) {
+      view.goTo({
+        center: [e.position.coords.longitude, e.position.coords.latitude]
+      });
+
+      handleViewClick({
+        mapPoint: {
+          latitude: e.position.coords.latitude,
+          longitude: e.position.coords.longitude
+        }
+      });
+    });
+
     // establish conditional DOM properties based on the view width
     viewWidthChange(view.widthBreakpoint);
     view.watch('widthBreakpoint', function(newValue) {
@@ -136,16 +173,12 @@ require([
     dragdealerElement = new Dragdealer('dragdealerSlider', {
       x: 0.5,
       slide: true,
-      // callback: function(x) {
-      //   if (!clickedMapPoint) {
-      //     return;
-      //   }
-      //   wrapAround();
-      // },
       animationCallback: function(x) {
         // transform the inner handle icon as if it is rotating like a wheel along a track
         var width = rotateControl.clientWidth,
-          circumference = handleOuterNode.clientWidth * Math.PI,
+          // handleOuterNode.clientWidth should be 50px (:hover size) but on startup it is 40px (non-:hover size)
+          // this messes up the intiial state of the inner icon rotation
+          circumference = 50 * Math.PI,
           rotateDeg = width / circumference * 360 * x;
         handleInnerNode.style.transform = 'rotate(' + rotateDeg + 'deg)';
 
@@ -164,6 +197,7 @@ require([
     });
 
     view.on('click', handleViewClick);
+
     // perform a pseudo synthetic click as a workaround
     // for a startup error with the geometryEngineAsync at v4.1
     handleViewClick({
@@ -260,6 +294,8 @@ require([
         view.ui.move(antipodeInfoNode, 'manual');
       }
       view.ui.move('zoom', 'bottom-left');
+      view.ui.move(switchViewNode, 'bottom-left');
+      view.ui.move(locateWidget, 'bottom-left');
     } else {
       view.ui.move(rotateControl, 'top-right');
       if (instructionsNode.style.display !== 'none') {
