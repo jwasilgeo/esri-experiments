@@ -2,14 +2,18 @@
 
 Web mapping experiments using the [ArcGIS API for JavaScript](https://js.arcgis.com):
 
-- **[antipodes](https://jwasilgeo.github.com/esri-experiments/antipodes)**: Get to know the opposite side of the Earth. ([check it out!](https://jwasilgeo.github.com/esri-experiments/antipodes))
+- **[antipodes](https://jwasilgeo.github.io/esri-experiments/antipodes)**: Get to know the opposite side of the Earth.
 
- ![antipodes](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/antipodes/antipodes.gif)
+ [![antipodes](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/antipodes/antipodes.gif)](https://jwasilgeo.github.io/esri-experiments/antipodes)
 
-- **[around-the-world](https://jwasilgeo.github.com/esri-experiments/around-the-world)**: Find out what lies across the ocean and beyond by traveling around the Earth (3D in a desktop browser, 2D on a mobile device). ([check it out!](https://jwasilgeo.github.com/esri-experiments/around-the-world))
+- **[around-the-world](https://jwasilgeo.github.io/esri-experiments/around-the-world)**: Find out what lies across the ocean and beyond by traveling around the Earth (3D in a desktop browser, 2D on a mobile device).
 
- ![screenshot](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/around-the-world/screenshot.png)
+ [![screenshot](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/around-the-world/screenshot.png)](https://jwasilgeo.github.io/esri-experiments/around-the-world)
 
-- **[iss-view](https://jwasilgeo.github.com/esri-experiments/iss-view)**: Take a ride on the International Space Station and explore NASA astronaut photography. ([check it out!](https://jwasilgeo.github.com/esri-experiments/iss-view))
+- **[earth-at-night](https://jwasilgeo.github.io/esri-experiments/earth-at-night)**: Explore the Earth at night as seen by Suomi NPP VIIRS.
 
- ![solar-terminator](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/iss-view/solar-terminator.gif)
+ [![screenshot](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/earth-at-night/screenshot.png)](https://jwasilgeo.github.io/esri-experiments/earth-at-night)
+
+- **[iss-view](https://jwasilgeo.github.io/esri-experiments/iss-view)**: Take a ride on the International Space Station and explore NASA astronaut photography.
+
+ [![solar-terminator](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/iss-view/solar-terminator.gif)](https://jwasilgeo.github.io/esri-experiments/iss-view)

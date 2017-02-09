@@ -229,8 +229,8 @@ require([
     if (res.message === 'success') {
 
       if (
-        (previousCoordinates.latitude.toFixed(3) !== view.camera.position.latitude.toFixed(3)) ||
-        (previousCoordinates.longitude.toFixed(3) !== view.camera.position.longitude.toFixed(3))
+        (Number(previousCoordinates.latitude).toFixed(3) !== view.camera.position.latitude.toFixed(3)) ||
+        (Number(previousCoordinates.longitude).toFixed(3) !== view.camera.position.longitude.toFixed(3))
       ) {
         errorMessageNode.innerHTML = 'Get ready. You\'re going to get moved.';
         errorMessageNode.style.display = 'flex';

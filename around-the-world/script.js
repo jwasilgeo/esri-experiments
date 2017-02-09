@@ -197,15 +197,6 @@ require([
     });
 
     view.on('click', handleViewClick);
-
-    // perform a pseudo synthetic click as a workaround
-    // for a startup error with the geometryEngineAsync at v4.1
-    handleViewClick({
-      mapPoint: {
-        latitude: 0,
-        longitude: 0
-      }
-    });
   });
 
   function handleViewClick(evt) {
