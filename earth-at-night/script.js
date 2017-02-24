@@ -15,7 +15,9 @@ require([
 
   var view = new SceneView({
     container: 'viewDiv',
-    map: new Map(),
+    map: new Map({
+      basemap: 'satellite'
+    }),
     camera: {
       position: [31, 28, 2000000],
       heading: 180
@@ -23,6 +25,10 @@ require([
     environment: {
       atmosphere: {
         quality: 'high'
+      },
+      lighting: {
+        date: Date.now(),
+        cameraTrackingEnabled: false
       }
     },
     constraints: {
@@ -47,17 +53,22 @@ require([
   view.map.add(earthAtNightLayer);
   view.map.add(labelsLayer);
 
+  view.watch('camera.position', function() {
+    var sunPosition = SunCalc.getPosition(view.environment.lighting.date, view.camera.position.latitude, view.camera.position.longitude);
+    var sunAltitudeDegrees = sunPosition.altitude * (180 / Math.PI);
+    earthAtNightLayer.visible = sunAltitudeDegrees > 0 ? false : true;
+  });
+
   view.then(function(view) {
     setTimeout(function() {
       view.goTo({
-          position: [31, 28, 15000000],
-          heading: 0
-        }, {
-          speedFactor: 0.25
-        })
-        .then(function() {
-          labelsLayer.visible = true;
-        });
+        position: [31, 28, 15000000],
+        heading: 0
+      }, {
+        speedFactor: 0.25
+      }).then(function() {
+        labelsLayer.visible = true;
+      });
     }, 5000);
   });
 });
