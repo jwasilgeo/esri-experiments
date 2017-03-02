@@ -56,7 +56,19 @@ require([
   view.watch('camera.position', function() {
     var sunPosition = SunCalc.getPosition(view.environment.lighting.date, view.camera.position.latitude, view.camera.position.longitude);
     var sunAltitudeDegrees = sunPosition.altitude * (180 / Math.PI);
-    earthAtNightLayer.visible = sunAltitudeDegrees > 0 ? false : true;
+
+    var cutoff = 15;
+    var opacity = 1;
+
+    if (sunAltitudeDegrees > 0) {
+      if (sunAltitudeDegrees <= cutoff) {
+        opacity = 1 - (sunAltitudeDegrees / cutoff);
+      } else {
+        opacity = 0;
+      }
+    }
+
+    earthAtNightLayer.opacity = opacity;
   });
 
   view.then(function(view) {

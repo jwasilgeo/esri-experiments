@@ -45,7 +45,6 @@ require([
     switchViewNode = document.getElementById('switchView'),
     dragdealerElement = null,
     clickedMapPoint = null,
-    previousTimeoutID = null,
     locateWidget;
 
   var isMobile = (
@@ -59,11 +58,11 @@ require([
   var lineSymbol = isMobile ?
     new SimpleLineSymbol({
       color: '#673ab7',
-      width: 6
+      width: 7
     }) :
     new LineSymbol3D({
       symbolLayers: [new LineSymbol3DLayer({
-        size: 6,
+        size: 8.5,
         material: {
           color: '#673ab7'
         }
@@ -73,12 +72,16 @@ require([
   var pointSymbol = isMobile ?
     new SimpleMarkerSymbol({
       color: '#f44336',
-      outline: null
+      outline: {
+        color: 'orange',
+        width: 1.75
+      },
+      size: 17
     }) :
     new PointSymbol3D({
       symbolLayers: [new ObjectSymbol3DLayer({
-        width: 150000,
-        height: 350000,
+        width: 400000,
+        height: 900000,
         resource: {
           primitive: 'cone'
         },
@@ -173,6 +176,7 @@ require([
     dragdealerElement = new Dragdealer('dragdealerSlider', {
       x: 0.5,
       slide: true,
+      loose: true,
       animationCallback: function(x) {
         // transform the inner handle icon as if it is rotating like a wheel along a track
         var width = rotateControl.clientWidth,
@@ -186,13 +190,14 @@ require([
         if (!clickedMapPoint) {
           return;
         }
-        // apply a timeout to debounce the number of operations
-        if (previousTimeoutID) {
-          clearTimeout(previousTimeoutID);
+
+        var latitudeShift = (x - 0.5) * 180;
+        if (latitudeShift > 90) {
+          latitudeShift -= 180;
+        } else if (latitudeShift < -90) {
+          latitudeShift += 180;
         }
-        previousTimeoutID = setTimeout(function() {
-          wrapAround(clickedMapPoint);
-        }, 50);
+        wrapAround(clickedMapPoint, latitudeShift);
       }
     });
 
@@ -210,13 +215,13 @@ require([
     wrapAround(clickedMapPoint);
   }
 
-  function wrapAround(clickedMapPoint) {
+  function wrapAround(clickedMapPoint, latitudeShift) {
     // the rotate control drag widget must be available and ready
     if (!dragdealerElement) {
       return;
     }
 
-    var latitudeShift = (dragdealerElement.getValue()[0] - 0.5) * 180;
+    latitudeShift = latitudeShift || (dragdealerElement.getValue()[0] - 0.5) * 180;
 
     // create a basic line at the clicked point and wrap it around the Earth
     var wrapAroundLine = new Polyline({
