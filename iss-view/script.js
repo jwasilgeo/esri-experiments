@@ -164,7 +164,6 @@ require([
       nextBasemap: stamenBasemap,
       titleVisible: false
     });
-    basemapToggle.startup();
     view.ui.add(basemapToggle, 'bottom-left');
   }
 
@@ -282,6 +281,8 @@ require([
       },
       tilt: 65,
       heading: heading
+    }, {
+      speedFactor: 0.4
     });
   }
 

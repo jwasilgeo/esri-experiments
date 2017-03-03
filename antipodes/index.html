@@ -8,7 +8,7 @@
 
   <title>Antipodes</title>
 
-  <link rel="stylesheet" href="//js.arcgis.com/4.2/esri/css/view.css">
+  <link rel="stylesheet" href="https://js.arcgis.com/4.3/esri/css/view.css">
   <style>
     html,
     body {
@@ -111,6 +111,7 @@
       font-weight: bold;
       cursor: default;
     }
+
   </style>
 
 </head>
@@ -136,7 +137,7 @@
     </div>
     <div class="panel minor stats">
       <div class="top-right-panel">
-        <div class="a-bit-smaller">THEN LOOK UP ^</div>
+        <div class="a-bit-smaller">THEN LOOK UP <span style="bottom: 6px; position: relative;">&uarr;</span></div>
         <!-- <div class="a-bit-smaller-2x">(that's the opposite side of the Earth!)</div> -->
         <div id="altitudeB">---</div>
       </div>
@@ -147,22 +148,23 @@
       <div class="bottom-left-panel">
         <div id="altitudeA">---</div>
         <div class="a-bit-smaller">
-          < INTERACT HERE</div>
+          &larr; INTERACT HERE
         </div>
       </div>
-    </span>
-
-    <div id="errorMessage" class="error-message">
-      <h2 class="upside-down" style="margin:0;"><a href="https://en.wikipedia.org/wiki/Antipodes">ANTIPODES</a></h2>
-      <h2 style="margin:0;"><a href="https://en.wikipedia.org/wiki/Antipodes">ANTIPODES</a></h2>
-      <p>Whoops!</p>
-      <p>You'll need a device/browser that supports WebGL.</p>
-      <a href="https://github.com/jwasilgeo/esri-experiments">Learn more here.</a>
-      <img src="antipodes.gif" width="100%" />
     </div>
+  </span>
 
-    <script src="//js.arcgis.com/4.2/"></script>
-    <script src="script.js"></script>
+  <div id="errorMessage" class="error-message">
+    <h2 class="upside-down" style="margin:0;"><a href="https://en.wikipedia.org/wiki/Antipodes">ANTIPODES</a></h2>
+    <h2 style="margin:0;"><a href="https://en.wikipedia.org/wiki/Antipodes">ANTIPODES</a></h2>
+    <p>Whoops!</p>
+    <p>You'll need a device/browser that supports WebGL.</p>
+    <a href="https://github.com/jwasilgeo/esri-experiments">Learn more here.</a>
+    <img src="antipodes.gif" width="100%" />
+  </div>
+
+  <script src="https://js.arcgis.com/4.3/"></script>
+  <script src="script.js"></script>
 </body>
 
 </html>

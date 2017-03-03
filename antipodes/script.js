@@ -1,6 +1,5 @@
 require([
   'dojo/dom-construct',
-  'dojo/query',
 
   'esri/geometry/Point',
   'esri/Graphic',
@@ -11,7 +10,7 @@ require([
 
   'dojo/domReady!'
 ], function(
-  domConstruct, dojoQuery,
+  domConstruct,
   Point, Graphic, GraphicsLayer, Map, SimpleMarkerSymbol, SceneView
 ) {
   if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|Opera Mini|IEMobile/i.test(navigator.userAgent)) {
@@ -60,11 +59,10 @@ require([
   });
 
   sceneViewB.then(function() {
-    domConstruct.place('crosshairs', dojoQuery('#sceneViewDivB .esri-ui')[0], 'first');
+    domConstruct.place('crosshairs', document.querySelector('#sceneViewDivB .esri-ui'), 'first');
   });
 
   sceneViewA.then(function() {
-    // a workaround to get the ground elevation tiles to report reasonable values when zoomed way out initially:
     // start the views zoomed in, and then zoom out to show the globe
     setTimeout(function() {
       sceneViewA.goTo({
@@ -75,53 +73,48 @@ require([
       });
     }, 7000);
 
-    // simulate a view 'mouse-move' listener
-    sceneViewA.container.addEventListener('mousemove', function(mouseEvt) {
-      sceneViewA.hitTest(mouseEvt.layerX, mouseEvt.layerY).then(function(response) {
-        if (response.results.length && response.results[0].mapPoint) {
-          var mouseGeometry = response.results[0].mapPoint.clone();
-
-          var mouseGraphic = new Graphic({
-            geometry: mouseGeometry,
-            symbol: new SimpleMarkerSymbol({
-              color: [255, 0, 0]
-            })
-          });
-
-          graphicsLayer.removeAll();
-          graphicsLayer.add(mouseGraphic);
-
-          var antipodeCamera = sceneViewA.camera.clone();
-          antipodeCamera.position.longitude = 180 + mouseGeometry.longitude;
-          antipodeCamera.position.latitude = -mouseGeometry.latitude;
-
-          sceneViewB.goTo(antipodeCamera, {
-            animate: true
-          });
-
-          // perform another hitTest at the crosshairs to try to get z altitude
-          var screenPointB = sceneViewB.toScreen(sceneViewB.center);
-          sceneViewB.hitTest(screenPointB.x, screenPointB.y).then(function(response) {
-            if (response.results.length && response.results[0].mapPoint) {
-              var altitudeAString = mouseGeometry.z >= 0 ? mouseGeometry.z.toFixed(0) : 0;
-              var altitudeBString = response.results[0].mapPoint.z >= 0 ? response.results[0].mapPoint.z.toFixed(0) : 0;
-
-              altitudeANode.innerHTML = altitudeAString + 'm';
-              altitudeBNode.innerHTML = altitudeBString + 'm';
-
-              altitudeANode.style.color = getAltitudeColor(altitudeAString);
-              altitudeBNode.style.color = getAltitudeColor(altitudeBString);
-            } else {
-              clearAltitudes();
-            }
-          });
-        } else {
-          clearAltitudes();
-        }
-
+    sceneViewA.on('pointer-move', function(evt) {
+      var pointerGeometry = sceneViewA.toMap({
+        x: evt.x,
+        y: evt.y
       });
-    });
 
+      if (pointerGeometry) {
+        var pointerGraphic = new Graphic({
+          geometry: pointerGeometry,
+          symbol: new SimpleMarkerSymbol({
+            color: [255, 0, 0]
+          })
+        });
+
+        graphicsLayer.removeAll();
+        graphicsLayer.add(pointerGraphic);
+
+        // set the antipode camera in the secondary scene view
+        var antipodeCamera = sceneViewA.camera.clone();
+        antipodeCamera.position.longitude = 180 + pointerGeometry.longitude;
+        antipodeCamera.position.latitude = -pointerGeometry.latitude;
+        sceneViewB.goTo(antipodeCamera);
+
+        // try to get z altitude in the secondary antipode scene view
+        var screenPointB = sceneViewB.toScreen(sceneViewB.center);
+        var crosshairsGeometry = sceneViewB.toMap({
+          x: screenPointB.x,
+          y: screenPointB.y
+        });
+
+        // display both views' altitude values
+        var altitudeAString = pointerGeometry.z >= 0 ? pointerGeometry.z.toFixed(0) : 0;
+        altitudeANode.innerHTML = altitudeAString + 'm';
+        altitudeANode.style.color = getAltitudeColor(altitudeAString);
+
+        var altitudeBString = crosshairsGeometry.z >= 0 ? crosshairsGeometry.z.toFixed(0) : 0;
+        altitudeBNode.innerHTML = altitudeBString + 'm';
+        altitudeBNode.style.color = getAltitudeColor(altitudeBString);
+      } else {
+        clearAltitudes();
+      }
+    });
   });
 
   function clearAltitudes() {

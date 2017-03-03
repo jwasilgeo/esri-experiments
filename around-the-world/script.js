@@ -114,7 +114,6 @@ require([
       ]
     }),
     center: [0, 0],
-    // zoom out a little if on a mobile device
     zoom: 2,
     ui: {
       components: ['attribution', 'zoom']
@@ -145,13 +144,11 @@ require([
       switchViewNode.style.display = 'flex';
     }
 
-    //
     locateWidget = new Locate({
       view: view,
       goToLocationEnabled: false,
       graphic: false
     });
-    locateWidget.startup();
     view.ui.add(locateWidget, 'bottom-left');
     locateWidget.on('locate', function(e) {
       view.goTo({

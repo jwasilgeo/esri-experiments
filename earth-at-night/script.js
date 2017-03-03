@@ -7,10 +7,10 @@ require([
 
   esriConfig.request.corsEnabledServers.push(
     'gibs.earthdata.nasa.gov',
-    'a.basemaps.cartocdn.com',
-    'b.basemaps.cartocdn.com',
-    'c.basemaps.cartocdn.com',
-    'd.basemaps.cartocdn.com'
+    'cartodb-basemaps-a.global.ssl.fastly.net',
+    'cartodb-basemaps-b.global.ssl.fastly.net',
+    'cartodb-basemaps-c.global.ssl.fastly.net',
+    'cartodb-basemaps-d.global.ssl.fastly.net'
   );
 
   var view = new SceneView({
@@ -39,14 +39,14 @@ require([
   });
 
   var earthAtNightLayer = new WebTileLayer({
-    urlTemplate: '//gibs.earthdata.nasa.gov/wmts-webmerc/VIIRS_CityLights_2012/default//GoogleMapsCompatible_Level8/{level}/{row}/{col}.jpg',
+    urlTemplate: 'https://gibs.earthdata.nasa.gov/wmts-webmerc/VIIRS_CityLights_2012/default//GoogleMapsCompatible_Level8/{level}/{row}/{col}.jpg',
     copyright: 'Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (<a href="https://earthdata.nasa.gov">ESDIS</a>) with funding provided by NASA/HQ.'
   });
 
   var labelsLayer = new WebTileLayer({
     visible: false,
-    urlTemplate: '//{subDomain}.basemaps.cartocdn.com/dark_only_labels/{level}/{col}/{row}.png',
-    copyright: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+    urlTemplate: 'https://cartodb-basemaps-{subDomain}.global.ssl.fastly.net/dark_only_labels/{level}/{col}/{row}.png',
+    copyright: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attribution">CARTO</a>',
     subDomains: ['a', 'b', 'c', 'd']
   });
 
