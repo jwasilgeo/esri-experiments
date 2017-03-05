@@ -19,11 +19,30 @@
       width: 100%;
     }
 
+    .credits {
+      display: none;
+      padding: 5px;
+      line-height: 1.5em;
+      background-color: rgba(255, 255, 255, 0.65);
+    }
+
+    .credits a {
+      color: #323232;
+      margin: 0 7px;
+      font-size: 1.15em;
+      font-weight: bold;
+    }
+
   </style>
 </head>
 
 <body>
   <div id="viewDiv"></div>
+
+  <div id="credits" class="esri-widget esri-component credits">
+    <a target="_blank" href="https://twitter.com/JWasilGeo">@JWasilGeo</a> |
+    <a target="_blank" href="https://github.com/jwasilgeo/esri-experiments">Github</a>
+  </div>
 
   <script src="https://unpkg.com/suncalc"></script>
   <script src="https://js.arcgis.com/4.3/"></script>

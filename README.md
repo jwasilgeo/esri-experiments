@@ -6,6 +6,10 @@ Web mapping experiments using the [ArcGIS API for JavaScript](https://js.arcgis.
 
  [![antipodes](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/antipodes/antipodes.gif)](https://jwasilgeo.github.io/esri-experiments/antipodes)
 
+ - **[antipodes-2d](https://jwasilgeo.github.io/esri-experiments/antipodes-2d)**: Get to know the opposite side of the Earth in 2D with wacky colors to make your head spin.
+
+  [![antipodes-2d](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/antipodes-2d/screenshot.png)](https://jwasilgeo.github.io/esri-experiments/antipodes-2d)
+
 - **[around-the-world](https://jwasilgeo.github.io/esri-experiments/around-the-world)**: Find out what lies across the ocean and beyond by traveling around the Earth (3D in a desktop browser, 2D on a mobile device).
 
  [![screenshot](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/around-the-world/screenshot.png)](https://jwasilgeo.github.io/esri-experiments/around-the-world)

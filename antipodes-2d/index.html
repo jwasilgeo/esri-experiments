@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta name="description" content="Get to know the opposite side of the Earth with the Esri ArcGIS API for JavaScript.">
+
+  <title>Antipodes 2D</title>
+
+  <link rel="stylesheet" href="https://js.arcgis.com/4.3/esri/css/view.css">
+  <style>
+    html,
+    body {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+
+    .esri-view {
+      height: 100%;
+      width: 100%;
+    }
+
+    #viewDivTop {
+      position: absolute;
+      z-index: 999;
+      background-color: transparent;
+      mix-blend-mode: difference;
+    }
+
+    #viewDivTop .esri-ui {
+      mix-blend-mode: unset !important;
+    }
+
+    #viewDivAntipode {
+      background-color: black;
+      transform: scaleX(-1);
+    }
+
+    .credits {
+      display: none;
+      padding: 5px;
+      line-height: 1.5em;
+      background-color: rgba(255, 255, 255, 0.65);
+    }
+
+    .credits a {
+      color: #323232;
+      margin: 0 7px;
+      font-size: 1.15em;
+      font-weight: bold;
+    }
+    
+    .antipode-info {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      padding: 5px;
+      font-size: 1.5em;
+      font-weight: bold;
+      background-color: rgba(110, 110, 110, 0.85);
+    }
+
+    .antipode-info div {
+      margin: 0 7px;
+    }
+
+    .upside-down {
+      transform: rotate(180deg);
+    }
+
+  </style>
+</head>
+
+<body>
+  <div id="viewDivTop"></div>
+  <div id="viewDivAntipode"></div>
+
+  <div id="antipodeInfo" class="esri-widget esri-component antipode-info">
+    <div class="upside-down" style="color: yellow;">ANTIPODE</div>
+    <div>- - - - - - - -</div>
+    <div style="color: blue;">ANTIPODE</div>
+  </div>
+
+  <div id="credits" class="esri-widget esri-component credits">
+    <a target="_blank" href="https://twitter.com/JWasilGeo">@JWasilGeo</a> |
+    <a target="_blank" href="https://github.com/jwasilgeo/esri-experiments">Github</a>
+  </div>
+
+  <script src="https://js.arcgis.com/4.3/"></script>
+  <script src="script.js"></script>
+</body>
+
+</html>

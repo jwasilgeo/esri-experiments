@@ -4,6 +4,7 @@ require([
   'esri/Map',
   'esri/views/SceneView'
 ], function(esriConfig, WebTileLayer, Map, SceneView) {
+  var credits = document.getElementById('credits');
 
   esriConfig.request.corsEnabledServers.push(
     'gibs.earthdata.nasa.gov',
@@ -72,6 +73,9 @@ require([
   });
 
   view.then(function(view) {
+    view.ui.add('credits', 'bottom-right');
+    credits.style.display = 'flex';
+
     setTimeout(function() {
       view.goTo({
         position: [31, 28, 15000000],
