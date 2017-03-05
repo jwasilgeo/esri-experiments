@@ -94,7 +94,7 @@ require([
           //     console.log('antipode: ', response.results[0].graphic.attributes.Country)
           //   }
           // });
-        });
+        // });
       });
 
       mapViewTop.watch('center,rotation', moveToAntipode);
