@@ -73,18 +73,18 @@ require([
 
       moveToAntipode().then(function() {
 
-        mapViewTop.on('pointer-move', function(evt) {
-          mapViewTop.hitTest({
-            x: evt.x,
-            y: evt.y
-          }).then(function(response) {
-            antipodeInfo.children[0].innerText = 'ANTIPODE';
-            if (response.results.length && response.results[0].graphic) {
-              antipodeInfo.children[2].innerText = response.results[0].graphic.attributes.Country.toUpperCase();
-            } else {
-              antipodeInfo.children[2].innerText = 'OCEAN';
-            }
-          });
+        // mapViewTop.on('pointer-move', function(evt) {
+        //   mapViewTop.hitTest({
+        //     x: evt.x,
+        //     y: evt.y
+        //   }).then(function(response) {
+        //     antipodeInfo.children[0].innerText = 'ANTIPODE';
+        //     if (response.results.length && response.results[0].graphic) {
+        //       antipodeInfo.children[2].innerText = response.results[0].graphic.attributes.Country.toUpperCase();
+        //     } else {
+        //       antipodeInfo.children[2].innerText = 'OCEAN';
+        //     }
+        //   });
 
           // mapViewAntipode.hitTest({
           //   x: evt.x,
