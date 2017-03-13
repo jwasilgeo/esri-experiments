@@ -39,7 +39,7 @@ require([
     map: new Map({
       layers: [new FeatureLayer({
         url: 'https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/World_Countries_(Generalized)/FeatureServer/0',
-        outFields: ['FID', 'Country']
+        outFields: ['FID', 'Country', 'OCEAN']
       })]
     }),
     center: [180 + longLat[0], -longLat[1]], // antipode start location
@@ -63,13 +63,30 @@ require([
     mapViewAntipode.then(function() {
       // override symbology
       var mapViewTopCountryLayer = mapViewTop.map.layers.items[0];
-      mapViewTopCountryLayer.renderer.symbol.color = [0, 255, 255, 1];
-      mapViewTopCountryLayer.renderer.symbol.outline.color = [0, 0, 255, 1];
+      // for dark blue mode...
+      //mapViewTopCountryLayer.renderer.symbol.color = [57, 87, 114, 1];
+      //mapViewTopCountryLayer.renderer.symbol.outline.color = [37, 50, 69, 1];
+      // for traditional mode...
+      mapViewTopCountryLayer.renderer.symbol.color = [113, 170, 113, 0.65];
+      mapViewTopCountryLayer.renderer.symbol.outline.color = [167, 226, 242, 0.5];
+      //for grayscale mode
+      // mapViewTopCountryLayer.renderer.symbol.color = [79, 79, 79, 1];
+      // mapViewTopCountryLayer.renderer.symbol.outline.color = [22, 22, 22, 1];
+      // for bright mode...
+      // mapViewTopCountryLayer.renderer.symbol.color = [0, 153, 255, 1];
+      // mapViewTopCountryLayer.renderer.symbol.outline.color = [244, 244, 244, 1];
       mapViewTop.map.basemap = null;
 
       var mapViewAntipodeCountryLayer = mapViewAntipode.map.layers.items[0];
-      mapViewAntipodeCountryLayer.renderer.symbol.color = [255, 255, 0, 1];
-      mapViewAntipodeCountryLayer.renderer.symbol.outline.color = [255, 0, 0, 1];
+      // for traditional AND dark blue modes. Turn up opacity for dark blue modes to ~0.3 for fill and 0.5 for outline ...
+      mapViewAntipodeCountryLayer.renderer.symbol.color = [255, 0, 0, 0.2];
+      mapViewAntipodeCountryLayer.renderer.symbol.outline.color = [200, 0, 0, 0.3];
+      // for grayscale mode...
+      // mapViewAntipodeCountryLayer.renderer.symbol.color = [48, 48, 48, 1];
+      // mapViewAntipodeCountryLayer.renderer.symbol.outline.color = [249, 78, 78, 1];
+      // for bright mode...
+      // mapViewAntipodeCountryLayer.renderer.symbol.color = [204, 232, 37, 1];
+      // mapViewAntipodeCountryLayer.renderer.symbol.outline.color = [0, 0, 153, 1];
 
       // moveToAntipode().then(function() {
       //   mapViewTop.on('pointer-move', function(evt) {

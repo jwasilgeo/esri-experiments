@@ -27,7 +27,8 @@
       position: absolute;
       z-index: 999;
       background-color: transparent;
-      mix-blend-mode: difference;
+      /* Use screen blend-mode for dark blue mode. Use normal or luminosity for traditional mode. Use lighten, luminosity or exclusion for grayscale mode. Use multiply for bright mode.*/
+      mix-blend-mode: normal;
     }
 
     #viewDivTop .esri-ui {
@@ -35,7 +36,14 @@
     }
 
     #viewDivAntipode {
-      background-color: black;
+      /* for dark blue mode: */
+      /*background-color: #172433;*/
+      /* for traditional mode: */
+      background-color: #a7e2f2;
+      /*for grayscale mode*/
+      /*background-color: #161616;*/
+      /*for bright mode*/
+      /*background-color: #f4f4f4;*/
       transform: scaleX(-1);
     }
 
@@ -52,7 +60,7 @@
       font-size: 1.15em;
       font-weight: bold;
     }
-    
+
     .antipode-info {
       display: none;
       flex-direction: column;
