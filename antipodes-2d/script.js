@@ -39,7 +39,7 @@ require([
     map: new Map({
       layers: [new FeatureLayer({
         url: 'https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/World_Countries_(Generalized)/FeatureServer/0',
-        outFields: ['FID', 'Country', 'OCEAN']
+        outFields: ['FID', 'Country']
       })]
     }),
     center: [180 + longLat[0], -longLat[1]], // antipode start location
