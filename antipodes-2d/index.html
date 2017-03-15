@@ -27,7 +27,11 @@
       position: absolute;
       z-index: 999;
       background-color: transparent;
-      /* Use screen blend-mode for dark blue mode. Use normal or luminosity for traditional mode. Use lighten, luminosity or exclusion for grayscale mode. Use multiply for bright mode.*/
+      /*
+        Use normal or luminosity for traditional mode.
+        Use lighten, luminosity or exclusion for grayscale mode.
+        Use multiply for bright mode.
+      */
       mix-blend-mode: normal;
     }
 
@@ -36,15 +40,34 @@
     }
 
     #viewDivAntipode {
-      /* for dark blue mode: */
-      /*background-color: #172433;*/
-      /* for traditional mode: */
       background-color: #a7e2f2;
-      /*for grayscale mode*/
-      /*background-color: #161616;*/
-      /*for bright mode*/
-      /*background-color: #f4f4f4;*/
       transform: scaleX(-1);
+    }
+
+    .off {
+      display: none;
+    }
+
+    .bigger-icon {
+      font-size: 22px;
+    }
+
+    .antipode-info {
+      flex-direction: column;
+      align-items: center;
+      padding: 5px;
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #a7e2f2;
+      background-color: rgba(#ffffff, 0.88);
+    }
+
+    .antipode-info div {
+      margin: 0 7px;
+    }
+
+    .colorblind-toggle {
+      border-radius: 50%;
     }
 
     .credits {
@@ -61,20 +84,6 @@
       font-weight: bold;
     }
 
-    .antipode-info {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      padding: 5px;
-      font-size: 1.5em;
-      font-weight: bold;
-      background-color: rgba(110, 110, 110, 0.85);
-    }
-
-    .antipode-info div {
-      margin: 0 7px;
-    }
-
     .upside-down {
       transform: rotate(180deg);
     }
@@ -83,19 +92,27 @@
 </head>
 
 <body>
-  <div id="viewDivTop"></div>
+  <div id="viewDivTop">
+
+    <div id="antipodeInfo" class="off esri-widget esri-component antipode-info">
+      <div style="color: #93d893;">ANTIPODE</div>
+      <div>- - - - - - - -</div>
+      <div class="upside-down" style="color: rgb(177, 34, 34);">ANTIPODE</div>
+    </div>
+
+    <div id="colorblindToggle" role="button" tabindex="0" class="off esri-widget-button esri-widget esri-component colorblind-toggle">
+      <span aria-hidden="true" class="esri-icon esri-icon-visible bigger-icon" title="Colorblind support"></span>
+      <span class="esri-icon-font-fallback-text">Colorblind support</span>
+    </div>
+
+    <div id="credits" class="off esri-widget esri-component credits">
+      <a target="_blank" href="https://twitter.com/JWasilGeo">@JWasilGeo</a> |
+      <a target="_blank" href="https://github.com/jwasilgeo/esri-experiments">Github</a>
+    </div>
+
+  </div>
+
   <div id="viewDivAntipode"></div>
-
-  <div id="antipodeInfo" class="esri-widget esri-component antipode-info" style="color: #a7e2f2; background-color: rgba(#ffffff, 0.88)">
-    <div class="upside-down" style="color: rgb(177, 34, 34);">ANTIPODE</div>
-    <div>- - - - - - - -</div>
-    <div style="color: #93d893;">ANTIPODE</div>
-  </div>
-
-  <div id="credits" class="esri-widget esri-component credits">
-    <a target="_blank" href="https://twitter.com/JWasilGeo">@JWasilGeo</a> |
-    <a target="_blank" href="https://github.com/jwasilgeo/esri-experiments">Github</a>
-  </div>
 
   <script src="https://js.arcgis.com/4.3/"></script>
   <script src="script.js"></script>
