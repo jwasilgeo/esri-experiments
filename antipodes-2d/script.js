@@ -180,8 +180,8 @@ require([
       antipodeCountryFillColor = [48, 48, 48, 1];
       antipodeCountryOutlineColor = [249, 78, 78, 1];
       backgroundColor = '#161616';
-      topCountryTextColor = '#93d893';
-      antipodeCountryTextColor = 'rgb(177, 34, 34)';
+      topCountryTextColor = '#4f4f4f';
+      antipodeCountryTextColor = '#f94e4e';
     } else if (nextColorScheme === 'bright') {
       nextColorScheme = 'traditional';
 
@@ -191,8 +191,8 @@ require([
       antipodeCountryFillColor = [204, 232, 37, 1];
       antipodeCountryOutlineColor = [0, 0, 153, 1];
       backgroundColor = '#f4f4f4';
-      topCountryTextColor = '#93d893';
-      antipodeCountryTextColor = 'rgb(177, 34, 34)';
+      topCountryTextColor = '#0099ff';
+      antipodeCountryTextColor = '#acbc13';
     }
 
     var topCountryLayer = mapViewTop.map.layers.getItemAt(0);
