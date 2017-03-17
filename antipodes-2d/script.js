@@ -10,6 +10,7 @@ require([
 ) {
   var antipodeInfo = document.getElementById('antipodeInfo');
   var colorblindToggle = document.getElementById('colorblindToggle');
+  var colorblindToggleImage = document.getElementById('toggle-btn');
   var credits = document.getElementById('credits');
 
   // MapView and Map initial values
@@ -162,8 +163,6 @@ require([
       antipodeCountryTextColor;
 
     if (nextColorScheme === 'traditional') {
-      nextColorScheme = 'grayscale';
-
       topCountryFillColor = [113, 170, 113, 0.65];
       topCountryOutlineColor = [167, 226, 242, 0.5];
       mixBlendMode = 'normal'; // or 'luminosity'
@@ -172,10 +171,10 @@ require([
       backgroundColor = '#a7e2f2';
       topCountryTextColor = '#93d893';
       antipodeCountryTextColor = 'rgb(177, 34, 34)';
-      document.getElementById("toggle-btn").src = "img/traditionalRnd.png";
-    } else if (nextColorScheme === 'grayscale') {
-      nextColorScheme = 'bright';
+      colorblindToggleImage.src = 'img/traditionalRnd.png';
 
+      nextColorScheme = 'grayscale';
+    } else if (nextColorScheme === 'grayscale') {
       topCountryFillColor = [79, 79, 79, 1];
       topCountryOutlineColor = [22, 22, 22, 1];
       mixBlendMode = 'lighten'; // or 'luminosity', 'exclusion'
@@ -184,10 +183,10 @@ require([
       backgroundColor = '#161616';
       topCountryTextColor = '#4f4f4f';
       antipodeCountryTextColor = '#f94e4e';
-      document.getElementById("toggle-btn").src = "img/grayscaleRnd.png";
-    } else if (nextColorScheme === 'bright') {
-      nextColorScheme = 'traditional';
+      colorblindToggleImage.src = 'img/grayscaleRnd.png';
 
+      nextColorScheme = 'bright';
+    } else if (nextColorScheme === 'bright') {
       topCountryFillColor = [0, 153, 255, 1];
       topCountryOutlineColor = [244, 244, 244, 1];
       mixBlendMode = 'multiply';
@@ -196,9 +195,10 @@ require([
       backgroundColor = '#f4f4f4';
       topCountryTextColor = '#0099ff';
       antipodeCountryTextColor = '#acbc13';
-      document.getElementById("toggle-btn").src = "img/brightRnd.png";
-    }
+      colorblindToggleImage.src = 'img/brightRnd.png';
 
+      nextColorScheme = 'traditional';
+    }
 
     var topCountryLayer = mapViewTop.map.layers.getItemAt(0);
     topCountryLayer.renderer.symbol.color = topCountryFillColor;
@@ -212,7 +212,6 @@ require([
 
     antipodeInfo.children[0].style.color = topCountryTextColor;
     antipodeInfo.children[2].style.color = antipodeCountryTextColor;
-
 
     // force a refresh (this goTo shouldn't be noticed by the user)
     mapViewTop.goTo({
