@@ -148,6 +148,7 @@ require([
     });
   }
 
+
   var nextColorScheme = 'traditional';
 
   function changeColorScheme() {
@@ -171,6 +172,7 @@ require([
       backgroundColor = '#a7e2f2';
       topCountryTextColor = '#93d893';
       antipodeCountryTextColor = 'rgb(177, 34, 34)';
+      document.getElementById("toggle-btn").src = "img/traditionalRnd.png";
     } else if (nextColorScheme === 'grayscale') {
       nextColorScheme = 'bright';
 
@@ -182,6 +184,7 @@ require([
       backgroundColor = '#161616';
       topCountryTextColor = '#4f4f4f';
       antipodeCountryTextColor = '#f94e4e';
+      document.getElementById("toggle-btn").src = "img/grayscaleRnd.png";
     } else if (nextColorScheme === 'bright') {
       nextColorScheme = 'traditional';
 
@@ -193,7 +196,9 @@ require([
       backgroundColor = '#f4f4f4';
       topCountryTextColor = '#0099ff';
       antipodeCountryTextColor = '#acbc13';
+      document.getElementById("toggle-btn").src = "img/brightRnd.png";
     }
+
 
     var topCountryLayer = mapViewTop.map.layers.getItemAt(0);
     topCountryLayer.renderer.symbol.color = topCountryFillColor;
@@ -207,6 +212,7 @@ require([
 
     antipodeInfo.children[0].style.color = topCountryTextColor;
     antipodeInfo.children[2].style.color = antipodeCountryTextColor;
+
 
     // force a refresh (this goTo shouldn't be noticed by the user)
     mapViewTop.goTo({
