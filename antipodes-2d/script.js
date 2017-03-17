@@ -112,7 +112,7 @@ require([
   }
 
   function establishCountryInteractionListener(mapViewTop, antipodeCountryLayerView) {
-    mapViewTop.on('pointer-move', function(evt) {
+    mapViewTop.on('pointer-down,pointer-move', function(evt) {
       // find out the country for the top MapView
       mapViewTop.hitTest({
         x: evt.x,
