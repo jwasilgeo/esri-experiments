@@ -8,7 +8,7 @@
 
   <title>Antipodes</title>
 
-  <link rel="stylesheet" href="https://js.arcgis.com/4.3/esri/css/view.css">
+  <link rel="stylesheet" href="https://js.arcgis.com/4.6/esri/css/view.css">
   <style>
     html,
     body {
@@ -36,23 +36,6 @@
       height: 50%;
     }
 
-    .crosshairs {
-      color: white;
-      font-size: 3em;
-      line-height: 0;
-      font-weight: bold;
-      cursor: pointer;
-      display: -webkit-box;
-      display: -ms-flexbox;
-      display: -webkit-flex;
-      display: flex;
-      -webkit-justify-content: center;
-      justify-content: center;
-      -webkit-align-items: center;
-      align-items: center;
-      height: 100%;
-    }
-
     .stats {
       font-size: 5em;
       text-align: center;
@@ -65,7 +48,7 @@
     }
 
     .a-bit-smaller-2x {
-      font-size: 0.25em;
+      font-size: 0.2em;
     }
 
     .bottom-left-panel {
@@ -128,17 +111,12 @@
       </div>
     </div>
     <div class="panel minor">
-      <div id="sceneViewDivB">
-        <!-- move this to be a child of <div class="esri-ui"... > in the scene view -->
-        <div id="crosshairs" class="crosshairs">
-          <div>+</div>
-        </div>
-      </div>
+      <div id="sceneViewDivB"></div>
     </div>
     <div class="panel minor stats">
       <div class="top-right-panel">
         <div class="a-bit-smaller">THEN LOOK UP <span style="bottom: 6px; position: relative;">&uarr;</span></div>
-        <!-- <div class="a-bit-smaller-2x">(that's the opposite side of the Earth!)</div> -->
+        <div class="a-bit-smaller-2x">(that's the opposite side of the Earth!)</div>
         <div id="altitudeB">---</div>
       </div>
 
@@ -165,7 +143,7 @@
     <img src="antipodes.gif" width="100%" />
   </div>
 
-  <script src="https://js.arcgis.com/4.3/"></script>
+  <script src="https://js.arcgis.com/4.6/"></script>
   <script src="script.js"></script>
 </body>
 

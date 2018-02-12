@@ -72,7 +72,7 @@ require([
     earthAtNightLayer.opacity = opacity;
   });
 
-  view.then(function(view) {
+  view.when(function(view) {
     view.ui.add('credits', 'bottom-right');
     credits.style.display = 'flex';
 

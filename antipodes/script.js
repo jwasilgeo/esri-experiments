@@ -5,13 +5,12 @@ require([
   'esri/Graphic',
   'esri/layers/GraphicsLayer',
   'esri/Map',
-  'esri/symbols/SimpleMarkerSymbol',
   'esri/views/SceneView',
 
   'dojo/domReady!'
 ], function(
   domConstruct,
-  Point, Graphic, GraphicsLayer, Map, SimpleMarkerSymbol, SceneView
+  Point, Graphic, GraphicsLayer, Map, SceneView
 ) {
   if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|Opera Mini|IEMobile/i.test(navigator.userAgent)) {
     document.getElementById('mainContent').style.display = 'none';
@@ -35,7 +34,7 @@ require([
     ground: 'world-elevation'
   });
 
-  // var longLat = [-4.484, 39.972];
+    // var longLat = [-4.484, 39.972];
   var longLat = [-5.936, 39.296];
 
   var sceneViewA = new SceneView({
@@ -58,20 +57,25 @@ require([
     }
   });
 
-  sceneViewB.then(function() {
-    domConstruct.place('crosshairs', document.querySelector('#sceneViewDivB .esri-ui'), 'first');
+  sceneViewB.on('click,double-click,drag,hold,key-down,key-up,mouse-wheel,pointer-down,pointer-move,pointer-up', function(evt) {
+    evt.stopPropagation();
   });
 
-  sceneViewA.then(function() {
+  sceneViewA.when(function() {
     // start the views zoomed in, and then zoom out to show the globe
     setTimeout(function() {
       sceneViewA.goTo({
         zoom: 3
       });
-      sceneViewB.goTo({
-        zoom: 3
-      });
     }, 7000);
+
+    sceneViewA.watch('camera', function(sceneViewACamera) {
+      // set the antipode camera in the secondary scene view
+      var antipodeCamera = sceneViewACamera.clone();
+      antipodeCamera.position.longitude += 180;
+      antipodeCamera.position.latitude *= -1;
+      sceneViewB.camera = antipodeCamera;
+    });
 
     sceneViewA.on('pointer-move', function(evt) {
       var pointerGeometry = sceneViewA.toMap({
@@ -82,33 +86,42 @@ require([
       if (pointerGeometry) {
         var pointerGraphic = new Graphic({
           geometry: pointerGeometry,
-          symbol: new SimpleMarkerSymbol({
-            color: [255, 0, 0]
-          })
+          symbol: {
+            type: 'simple-marker',
+            color: '#f44336',
+            outline: {
+              color: 'orange',
+              width: 1.75
+            },
+            size: 17
+          }
         });
+
+        var antipodeGraphic1 = pointerGraphic.clone();
+        antipodeGraphic1.geometry.longitude += 180;
+        antipodeGraphic1.geometry.latitude *= -1;
+
+        // another antipode (really in the same place) to avoid "missing" graphic wrap-around
+        var antipodeGraphic2 = pointerGraphic.clone();
+        antipodeGraphic2.geometry.longitude -= 180;
+        antipodeGraphic2.geometry.latitude *= -1;
 
         graphicsLayer.removeAll();
-        graphicsLayer.add(pointerGraphic);
-
-        // set the antipode camera in the secondary scene view
-        var antipodeCamera = sceneViewA.camera.clone();
-        antipodeCamera.position.longitude = 180 + pointerGeometry.longitude;
-        antipodeCamera.position.latitude = -pointerGeometry.latitude;
-        sceneViewB.goTo(antipodeCamera);
-
-        // try to get z altitude in the secondary antipode scene view
-        var screenPointB = sceneViewB.toScreen(sceneViewB.center);
-        var crosshairsGeometry = sceneViewB.toMap({
-          x: screenPointB.x,
-          y: screenPointB.y
-        });
+        graphicsLayer.addMany([pointerGraphic, antipodeGraphic1, antipodeGraphic2]);
 
         // display both views' altitude values
         var altitudeAString = pointerGeometry.z >= 0 ? pointerGeometry.z.toFixed(0) : 0;
         altitudeANode.innerHTML = altitudeAString + 'm';
         altitudeANode.style.color = getAltitudeColor(altitudeAString);
 
-        var altitudeBString = crosshairsGeometry.z >= 0 ? crosshairsGeometry.z.toFixed(0) : 0;
+        // do a map --> screen --> map conversion to forcibly update the antipode point geometry to have the correct "z" altitude value
+        var antipodePointForAltitude = sceneViewB.toScreen(antipodeGraphic1.geometry);
+        antipodePointForAltitude = sceneViewB.toMap({
+          x: antipodePointForAltitude.x,
+          y: antipodePointForAltitude.y
+        });
+
+        var altitudeBString = antipodePointForAltitude && antipodePointForAltitude.z >= 0 ? antipodePointForAltitude.z.toFixed(0) : 0;
         altitudeBNode.innerHTML = altitudeBString + 'm';
         altitudeBNode.style.color = getAltitudeColor(altitudeBString);
       } else {

@@ -23,7 +23,6 @@ require([
   var mapViewTop = new MapView({
     container: 'viewDivTop',
     map: new Map({
-      basemap: 'dark-gray-vector',
       layers: [new FeatureLayer({
         url: countriesUrl,
         outFields: countriesOutFields
@@ -43,7 +42,6 @@ require([
   var mapViewAntipode = new MapView({
     container: 'viewDivAntipode',
     map: new Map({
-      basemap: 'dark-gray-vector',
       layers: [new FeatureLayer({
         url: countriesUrl,
         outFields: countriesOutFields
@@ -62,15 +60,13 @@ require([
 
   // do a bunch of waiting on view and layer resources to be loaded/ready
   mapViewTop
-    .then(function() {
+    .when(function() {
       mapViewTop.ui.add('antipodeInfo', 'top-right');
       antipodeInfo.style.display = 'flex';
 
       mapViewTop.ui.add('colorblindToggle', 'top-left');
       colorblindToggle.style.display = 'flex';
       colorblindToggle.addEventListener('click', changeColorScheme);
-      // set the intial "traditional" color scheme
-      changeColorScheme();
 
       mapViewTop.ui.add('credits', 'bottom-right');
       credits.style.display = 'flex';
@@ -88,10 +84,8 @@ require([
       return mapViewAntipode.whenLayerView(antipodeCountryLayer);
     })
     .then(function(antipodeCountryLayerView) {
-      // the basemaps were just used to help with map initialization;
-      // get rid of them for the 2 MapViews
-      mapViewTop.map.basemap = null;
-      mapViewAntipode.map.basemap = null;
+      // set the intial "traditional" color scheme
+      changeColorScheme();
 
       // wait a bit more just to be safe
       setTimeout(function() {

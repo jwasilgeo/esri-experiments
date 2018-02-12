@@ -125,7 +125,7 @@ require([
     view.environment.atmosphere.quality = 'high';
   }
 
-  view.then(function(view) {
+  view.when(function(view) {
     // position and show the credits element and rotate control element
     view.ui.add(creditsNode, 'bottom-right');
     creditsNode.style.display = 'block';
