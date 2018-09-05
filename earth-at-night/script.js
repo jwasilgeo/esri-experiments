@@ -101,7 +101,7 @@ require([
 
   var EarthAtNight3DLayer = BaseElevationLayer.createSubclass({
     properties: {
-      factor: 50000
+      factor: 75000
     },
     load: function() {
       this._earthAtNightLayer = createEarthAtNightLayer();
