@@ -1,23 +1,33 @@
 # esri-experiments
 
-Web mapping experiments using the [ArcGIS API for JavaScript](https://js.arcgis.com):
+Web mapping experiments using the [ArcGIS API for JavaScript](https://js.arcgis.com).
 
-- **[antipodes](https://jwasilgeo.github.io/esri-experiments/antipodes)**: Get to know the opposite side of the Earth.
+## [antipodes](https://jwasilgeo.github.io/esri-experiments/antipodes)
 
-  [![antipodes](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/antipodes/antipodes.gif)](https://jwasilgeo.github.io/esri-experiments/antipodes)
+Get to know the opposite side of the Earth in 3D.
 
-- **[antipodes-2d](https://jwasilgeo.github.io/esri-experiments/antipodes-2d)**: Get to know the opposite side of the Earth in 2D. Now ships with several choices in color schemes for colorblind support!
+[![antipodes](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/antipodes/antipodes.gif)](https://jwasilgeo.github.io/esri-experiments/antipodes)
 
-  [![antipodes-2d](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/antipodes-2d/screenshot.png)](https://jwasilgeo.github.io/esri-experiments/antipodes-2d)
+## [antipodes-2d](https://jwasilgeo.github.io/esri-experiments/antipodes-2d)
 
-- **[around-the-world](https://jwasilgeo.github.io/esri-experiments/around-the-world)**: Find out what lies across the ocean and beyond by traveling around the Earth (3D in a desktop browser, 2D on a mobile device).
+Get to know the opposite side of the Earth in 2D. Includes several choices in color schemes for colorblind support.
 
-  [![screenshot](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/around-the-world/screenshot.png)](https://jwasilgeo.github.io/esri-experiments/around-the-world)
+[![antipodes-2d](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/antipodes-2d/screenshot.png)](https://jwasilgeo.github.io/esri-experiments/antipodes-2d)
 
-- **[earth-at-night](https://jwasilgeo.github.io/esri-experiments/earth-at-night)**: Explore the Earth at night as seen by Suomi NPP VIIRS.
+## [around-the-world](https://jwasilgeo.github.io/esri-experiments/around-the-world)
 
-  [![screenshot](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/earth-at-night/screenshot.png)](https://jwasilgeo.github.io/esri-experiments/earth-at-night)
+Find out what lies across the ocean and beyond by traveling around the Earth. 3D in a desktop browser, 2D on a mobile device.
 
-- **[iss-view](https://jwasilgeo.github.io/esri-experiments/iss-view)**: Take a ride on the International Space Station and explore NASA astronaut photography.
+[![screenshot](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/around-the-world/screenshot.png)](https://jwasilgeo.github.io/esri-experiments/around-the-world)
 
-  [![solar-terminator](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/iss-view/solar-terminator.gif)](https://jwasilgeo.github.io/esri-experiments/iss-view)
+## [earth-at-night](https://jwasilgeo.github.io/esri-experiments/earth-at-night)
+
+Explore the Earth at night as seen by Suomi NPP VIIRS. Light emissions are used as the world's thematic elevation layer by using [chroma.js](http://gka.github.io/chroma.js/) to calculate pixel color luminosity.
+
+[![screenshot](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/earth-at-night/screenshot.png)](https://jwasilgeo.github.io/esri-experiments/earth-at-night)
+
+## [iss-view](https://jwasilgeo.github.io/esri-experiments/iss-view)
+
+Take a ride on the International Space Station and explore NASA astronaut photography.
+
+[![solar-terminator](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/iss-view/solar-terminator.gif)](https://jwasilgeo.github.io/esri-experiments/iss-view)
