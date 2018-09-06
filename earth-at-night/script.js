@@ -215,14 +215,19 @@ require([
       view: view,
       graphic: null,
       goToOverride: function(view, goToParams) {
+        var originalHeading = view.camera.clone().heading;
+
         return view.goTo({
-          scale: 50000000
+          scale: 80000000,
+          tilt: 0,
+          heading: 0
         }, {
           speedFactor: 0.25
         })
           .then(function() {
             goToParams.target.tilt = 55;
             goToParams.target.scale = 650000;
+            goToParams.target.heading = originalHeading;
             return view.goTo(goToParams.target, {
               speedFactor: 0.5
             });
