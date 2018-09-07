@@ -1,6 +1,6 @@
 # esri-experiments
 
-Web mapping experiments using the [ArcGIS API for JavaScript](https://js.arcgis.com).
+Web mapping experiments using the [ArcGIS API for JavaScript](https://js.arcgis.com). Also check out my [LeafletJS experiments](https://github.com/jwasilgeo/leaflet-experiments).
 
 ## [antipodes](https://jwasilgeo.github.io/esri-experiments/antipodes)
 
