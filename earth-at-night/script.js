@@ -28,7 +28,7 @@ require([
     },
     returnZ: false,
     minScale: 25000000,
-    definitionExpression: 'POP_RANK <= 4 OR STATUS LIKE \'%National%\'',
+    definitionExpression: 'POP_RANK <= 6 OR STATUS LIKE \'%National%\'',
     outFields: ['CITY_NAME'],
     screenSizePerspectiveEnabled: true,
     featureReduction: {
