@@ -94,14 +94,15 @@ require([
 
   function createEarthAtNightLayer() {
     return new WebTileLayer({
-      urlTemplate: 'https://gibs.earthdata.nasa.gov/wmts-webmerc/VIIRS_CityLights_2012/default//GoogleMapsCompatible_Level8/{level}/{row}/{col}.jpg',
+      // urlTemplate: 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_CityLights_2012/default//GoogleMapsCompatible_Level8/{level}/{row}/{col}.jpg',
+      urlTemplate: 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_Black_Marble/default/2016-01-01/GoogleMapsCompatible_Level8/{level}/{row}/{col}.png',
       copyright: 'Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (<a href="https://earthdata.nasa.gov">ESDIS</a>) with funding provided by NASA/HQ.'
     });
   }
 
   var EarthAtNight3DLayer = BaseElevationLayer.createSubclass({
     properties: {
-      factor: 75000
+      factor: 85000
     },
     load: function() {
       this._earthAtNightLayer = createEarthAtNightLayer();
