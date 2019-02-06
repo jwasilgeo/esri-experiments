@@ -1,7 +1,6 @@
-// https://developers.arcgis.com/javascript/latest/sample-code/visualization-point-styles/index.html
+var view;
 
 require([
-  'esri/config',
   'esri/core/promiseUtils',
 
   'esri/layers/BaseElevationLayer',
@@ -14,13 +13,28 @@ require([
 
   'esri/widgets/Locate',
 ], function(
-  esriConfig, promiseUtils,
+  promiseUtils,
   BaseElevationLayer, BaseTileLayer, FeatureLayer, WebTileLayer,
   Map, SceneView,
   Locate
 ) {
-  esriConfig.request.corsEnabledServers.push('gibs.earthdata.nasa.gov');
+  // a utility black base layer for SceneView and MapView adapted from @ycabon's codepen
+  // https://codepen.io/ycabon/pen/gvXqqj?editors=1000
+  // its purposes is to simply override the default graticule on the SceneView's globe
+  var BlackLayer = BaseTileLayer.createSubclass({
+    constructor: function() {
+      var canvas = this.canvas = document.createElement('canvas');
+      canvas.width = canvas.height = 256;
+      var ctx = canvas.getContext('2d');
+      ctx.fillRect(0, 0, 256, 256);
+    },
+    fetchTile: function() {
+      return promiseUtils.resolve(this.canvas);
+    }
+  });
 
+  // this cities feature layer provides the labeled callouts
+  // https://developers.arcgis.com/javascript/latest/sample-code/visualization-point-styles/index.html
   var citiesLayer = new FeatureLayer({
     url: 'https://services.arcgis.com/P3ePLMYs2RVChkJx/ArcGIS/rest/services/World_Cities/FeatureServer/0',
     elevationInfo: {
@@ -77,38 +91,34 @@ require([
       }
     }]
   });
-
-  // black base layer for SceneView and MapView adapted from @ycabon's
-  // https://codepen.io/ycabon/pen/gvXqqj?editors=1000
-  var BlackLayer = BaseTileLayer.createSubclass({
-    constructor: function() {
-      var canvas = this.canvas = document.createElement('canvas');
-      canvas.width = canvas.height = 256;
-      var ctx = canvas.getContext('2d');
-      ctx.fillRect(0, 0, 256, 256);
-    },
-    fetchTile: function() {
-      return promiseUtils.resolve(this.canvas);
-    }
-  });
-
+    
+  // helper function that returns an instance of the Black Marble WebTileLayer
+  // (it'll be reused by both the 3D ground terrain layer and the 2D layer draped on top)
   function createEarthAtNightLayer() {
     return new WebTileLayer({
-      // urlTemplate: 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_CityLights_2012/default//GoogleMapsCompatible_Level8/{level}/{row}/{col}.jpg',
       urlTemplate: 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_Black_Marble/default/2016-01-01/GoogleMapsCompatible_Level8/{level}/{row}/{col}.png',
       copyright: 'Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (<a href="https://earthdata.nasa.gov">ESDIS</a>) with funding provided by NASA/HQ.'
     });
   }
 
+  // this instance of the Black Marble WebTileLayer will be draped over the SceneView's ground terrain
+  // TODO: block tile levels at 0 or 9+ from fetching tiles (they don't exist)
+  //       research TileInfo.create() and remove the unwanted LODs
+  //       https://developers.arcgis.com/javascript/latest/api-reference/esri-layers-support-TileInfo.html#create
+  var earthAtNight2DLayer = createEarthAtNightLayer();
+
+  // this is the custom 3D ground terrain elevation layer
+  // internally, it also relies on the Black Marble WebTileLayer to calculate elevation values
   var EarthAtNight3DLayer = BaseElevationLayer.createSubclass({
     properties: {
-      factor: 85000
+      exaggerationFactor: 85000
     },
     load: function() {
       this._earthAtNightLayer = createEarthAtNightLayer();
       this.addResolvingPromise(this._earthAtNightLayer.load());
     },
     fetchTile: function(level, row, col) {
+      // stop early if zoomed out beyond tile levels available in the Black Marble WebTileLayer
       if (level === 0) {
         return promiseUtils.resolve({
           values: [],
@@ -117,7 +127,8 @@ require([
           noDataValue: -1
         });
       }
-
+      
+      // stop early if zoomed in beyond tile levels available in the Black Marble WebTileLayer
       if (level >= 9) {
         return promiseUtils.resolve({
           values: [],
@@ -127,9 +138,9 @@ require([
         });
       }
 
-      return this._earthAtNightLayer.fetchTile(level, row, col, {
-        allowImageDataAccess: true
-      })
+      // for valid tile levels in the Black Marble WebTileLayer,
+      // fetch image tiles and convert each pixel's "luminance" into elevation values
+      return this._earthAtNightLayer.fetchTile(level, row, col)
         .then(function(imageElement) {
           var width = imageElement.width;
           var height = imageElement.height;
@@ -137,6 +148,7 @@ require([
           var canvas = document.createElement('canvas');
           canvas.width = width;
           canvas.height = height;
+
           var ctx = canvas.getContext('2d');
           ctx.drawImage(imageElement, 0, 0, width, height);
 
@@ -148,12 +160,11 @@ require([
             var r = imageData[index];
             var g = imageData[index + 1];
             var b = imageData[index + 2];
+            // opacity would be imageData[index + 3] but we don't need it
 
-            var elevation = new chroma([r, g, b])
-              // .desaturate(100)
-              .luminance();
+            var elevation = new chroma([r, g, b]).luminance();
 
-            elevation *= this.factor;
+            elevation *= this.exaggerationFactor;
 
             elevations.push(elevation);
           }
@@ -168,7 +179,8 @@ require([
     }
   });
 
-  var view = new SceneView({
+  // TODO: remove global var view
+  view = new SceneView({
     container: 'viewDiv',
     map: new Map({
       basemap: {
@@ -182,7 +194,7 @@ require([
         ]
       },
       layers: [
-        createEarthAtNightLayer(),
+        earthAtNight2DLayer,
         citiesLayer
       ]
     }),
@@ -200,11 +212,12 @@ require([
         quality: 'high'
       }
     },
-    constraints: {
-      altitude: {
-        min: 500000
-      }
-    }
+    // TODO: continue using camera constraints? not quite right effect on mobile devices yet.
+    // constraints: {
+    //   altitude: {
+    //     min: 500000
+    //   }
+    // }
   });
 
   view.when(function(view) {
@@ -212,6 +225,15 @@ require([
     view.ui.add(credits, 'bottom-right');
     credits.style.display = 'flex';
 
+    // TODO: add a toggle to see satellite imagery draped over the custom ground terrain
+    // and research if possible to animate to a "true" elevation ground terrain
+    // view.map.basemap = 'satellite'
+    // view.map.basemap.baseLayers.getItemAt(0).opacity = 0.5
+    // earthAtNight2DLayer.opactiy = 0.5;
+    // earthAtNight2DLayer.visible = false;
+
+    // add a Locate widget and override its behavior
+    // by zooming out to space and then in to the user's location
     view.ui.add(new Locate({
       view: view,
       graphic: null,
