@@ -1,3 +1,11 @@
+// TODO: outline main points
+//  - custom 3D terrain layer
+//  - 2D tiles draped over custom terrain
+//  - custom feature layer with city label "callouts"
+//  - put together list of JSAPI official samples and docs that inspired this
+//  - this also opens up possibilities of other 3D terrain layers for thematic (gridded) data
+
+// TODO: remove from global
 var view;
 
 require([
