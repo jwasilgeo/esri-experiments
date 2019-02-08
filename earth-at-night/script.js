@@ -13,6 +13,11 @@
 //    5. add the callout labels layer
 //    6. add the custom black layer
 
+// DS2019 notes:
+// THIS TALK: https://devsummit2019.schedule.esri.com/schedule/1434288976
+// advertise the demo theater dedicated to advanced webgl https://devsummit2019.schedule.esri.com/schedule/1892792668
+
+
 require([
   'esri/core/promiseUtils',
 
