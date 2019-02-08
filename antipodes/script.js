@@ -34,7 +34,7 @@ require([
     ground: 'world-elevation'
   });
 
-    // var longLat = [-4.484, 39.972];
+  // var longLat = [-4.484, 39.972];
   var longLat = [-5.936, 39.296];
 
   var sceneViewA = new SceneView({
