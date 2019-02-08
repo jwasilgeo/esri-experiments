@@ -5,6 +5,13 @@
 //  - custom feature layer with city label "callouts"
 //  - put together list of JSAPI official samples and docs that inspired this
 //  - this also opens up possibilities of other 3D terrain layers for thematic (gridded) data
+//  - create a series of demos with increasing complexity
+//    1. basic sceneview with nothing on it
+//    2. add only the 2D WebTileLayer
+//    3. add only the custom 3D terrain
+//    4. drape the 2D over the 3D
+//    5. add the callout labels layer
+//    6. add the custom black layer
 
 require([
   'esri/core/promiseUtils',
@@ -27,17 +34,17 @@ require([
   // helper function that returns an instance of the Black Marble WebTileLayer
   // (it'll be reused by both the 3D ground terrain layer and the 2D layer draped on top)
   function createEarthAtNightWebTileLayer() {
-    var earthAtNightTileLayer = new WebTileLayer({
+    var earthAtNightWebTileLayer = new WebTileLayer({
       urlTemplate: 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_Black_Marble/default/2016-01-01/GoogleMapsCompatible_Level8/{level}/{row}/{col}.png',
       copyright: 'Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (<a href="https://earthdata.nasa.gov">ESDIS</a>) with funding provided by NASA/HQ.'
     });
 
-    // only tile zoom levels 1 through 8 exist, but not 0 or 9+
-    // we remove levels that do not exist to block fetching those tiles
-    earthAtNightTileLayer.tileInfo.lods.splice(0, 1);
-    earthAtNightTileLayer.tileInfo.lods.splice(8);
+    // only tile zoom levels 1 through 8 exist on the server resource,
+    // thus we remove levels 0 and 9+ from the tileInfo.lods array to block attempts at fetching those tiles
+    earthAtNightWebTileLayer.tileInfo.lods.splice(0, 1);
+    earthAtNightWebTileLayer.tileInfo.lods.splice(8);
 
-    return earthAtNightTileLayer;
+    return earthAtNightWebTileLayer;
   }
 
   // TODO: pull this out into a separate module
@@ -50,25 +57,22 @@ require([
     },
     load: function() {
       this._earthAtNightLayer = createEarthAtNightWebTileLayer();
-      
-      // return this._earthAtNightLayer
-      return this._earthAtNightLayer
+
+      var internalLayerResourcePromise = this._earthAtNightLayer
         .load()
         .then(function() {
           // set the elevation layer's tileInfo to be equal to
-          // the underlying WebTileLayer's modified tileInfo
+          // the underlying WebTileLayer's own modified tileInfo
           this.tileInfo = this._earthAtNightLayer.tileInfo;
-
-          // TODO: is this necessary?
-          // return promiseUtils.resolve();
         }.bind(this));
-      
-      // TODO: explain difference between what I'm doing above versus documented "addResolvingPromise"
-      // this.addResolvingPromise(this._earthAtNightLayer.load());
+
+      // add a promise that has to be resolved before the elevation layer is considered loaded
+      this.addResolvingPromise(internalLayerResourcePromise);
     },
     fetchTile: function(level, row, col) {
-      // fetch image tiles from the Black Marble WebTileLayer
-      // and convert each pixel's "luminance" into elevation values
+      // fetch image tiles from the Black Marble WebTileLayer,
+      // convert each pixel's "luminance" into elevation values,
+      // and return a promise that resolves to an object with the properties defined in ElevationTileData
       return this._earthAtNightLayer.fetchTile(level, row, col)
         .then(function(imageElement) {
           var width = imageElement.width;
@@ -91,13 +95,19 @@ require([
             var b = imageData[index + 2];
             // opacity would be imageData[index + 3] but we don't need it
 
-            var elevation = new chroma([r, g, b]).luminance();
+            // convert the RGB pixel color to a "luminance" from 0-1
+            var luminance = new chroma([r, g, b]).luminance();
 
-            elevation *= this.exaggerationFactor;
+            // apply the terrain exaggeration factor to arrive at an elevation value
+            // e.g. 0.75 luminance becomes a height of 63,750
+            var elevation = luminance * this.exaggerationFactor;
 
+            // add the individual value to the elevations array
             elevations.push(elevation);
           }
 
+          // the promise returned in the elevation layer's "fetchTile" method
+          // must resolve to an ElevationTileData object
           return {
             values: elevations,
             width: width,
@@ -107,7 +117,7 @@ require([
         }.bind(this));
     }
   });
-    
+
   // a utility black base layer class for SceneView and MapView adapted from @ycabon's codepen
   // https://codepen.io/ycabon/pen/gvXqqj?editors=1000
   // its purpose is to simply override the default graticule on the SceneView's globe
@@ -122,17 +132,17 @@ require([
       return promiseUtils.resolve(this.canvas);
     }
   });
-    
-  // create layer instances and then create SceneView, Map, widgets, etc. 
+
+  // create layer instances and then create SceneView, Map, widgets, etc.
   // - earthAtNight3DLayer
   // - earthAtNight2DLayer
   // - blackLayer
   // - citiesLayer
 
-  // this instance of the Black Marble WebTileLayer will be draped over the SceneView's ground terrain as an operational layer
+  // this instance of the Black Marble WebTileLayer will be an operational layer that will be draped over the SceneView's custom ground terrain
   var earthAtNight2DLayer = createEarthAtNightWebTileLayer();
-  
-  // this instance of the custom 3D ground terrain elevation layer will be provided to the SceneView's ground layers propertyBlack Marble WebTileLayer will be draped over the SceneView's ground terrain
+
+  // this instance of the custom 3D ground terrain elevation layer will be provided to the SceneView's ground layers property
   var earthAtNight3DLayer = new EarthAtNight3DLayerClass();
 
   var blackLayer = new BlackLayerClass();
@@ -146,7 +156,7 @@ require([
     },
     returnZ: false,
     minScale: 25000000,
-    definitionExpression: 'POP_RANK <= 6 OR STATUS LIKE \'%National%\'',
+    definitionExpression: 'POP_RANK <= 5 OR STATUS LIKE \'%National%\'',
     outFields: ['CITY_NAME'],
     screenSizePerspectiveEnabled: true,
     featureReduction: {
@@ -156,7 +166,7 @@ require([
       type: 'simple',
       symbol: {
         // hide any kind of symbol showing up on the ground for the feature
-        // because we're only intersted in the lable with a callout
+        // because we're only intersted in the label with a callout
         type: 'point-3d',
         symbolLayers: [{
           type: 'icon',
