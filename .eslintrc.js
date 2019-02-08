@@ -6,6 +6,7 @@ module.exports = {
     'define': false,
     'require': false,
     'chroma': false,
+    'anime': false,
     'Dragdealer': false
   },
   'extends': 'eslint:recommended',

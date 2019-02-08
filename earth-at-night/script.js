@@ -214,6 +214,7 @@ require([
           blackLayer,
         ]
       },
+      // basemap: 'satellite',
       ground: {
         layers: [
           earthAtNight3DLayer
@@ -249,8 +250,33 @@ require([
     // and research if possible to animate to a "true" elevation ground terrain
     // view.map.basemap = 'satellite'
     // view.map.basemap.baseLayers.getItemAt(0).opacity = 0.5
-    // earthAtNight2DLayer.opactiy = 0.5;
+    // earthAtNight2DLayer.opacity = 0.5;
     // earthAtNight2DLayer.visible = false;
+
+    // earthAtNight2DLayer.opacity = 0;
+    // view.map.basemap = 'satellite';
+
+    // view.map.basemap.baseLayers.getItemAt(0).opacity = 0;
+
+    // anime({
+    //   targets: earthAtNight2DLayer,
+    //   opacity: 0,
+    //   duration: 2000,
+    //   delay: 0,
+    //   easing: 'linear',
+    //   direction: 'alternate',
+    //   loop: true
+    // });
+
+    // anime({
+    //   targets: view.map.basemap.baseLayers.getItemAt(0),
+    //   opacity: 1,
+    //   duration: 2000,
+    //   delay: 0,
+    //   easing: 'linear',
+    //   direction: 'alternate',
+    //   loop: true
+    // });
 
     // add a Locate widget and override its behavior
     // by zooming out to space and then in to the user's location
