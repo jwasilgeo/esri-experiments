@@ -6,12 +6,10 @@
 //  - put together list of JSAPI official samples and docs that inspired this
 //  - this also opens up possibilities of other 3D terrain layers for thematic (gridded) data
 //  - create a series of demos with increasing complexity
-//    1. basic sceneview with nothing on it
-//    2. add only the 2D WebTileLayer
-//    3. add only the custom 3D terrain
-//    4. drape the 2D over the 3D
-//    5. add the callout labels layer
-//    6. add the custom black layer
+//    1. basic sceneview with only the 2D WebTileLayer
+//    2. add the custom 3D terrain to the sceneview's ground property and also set ground.surfaceColor
+//    3. add the callout labels layer
+//    4. add the custom black layer and other widgets
 
 // DS2019 notes:
 // THIS TALK: https://devsummit2019.schedule.esri.com/schedule/1434288976
@@ -19,10 +17,7 @@
 
 
 require([
-  'esri/core/promiseUtils',
-
   'esri/layers/BaseElevationLayer',
-  'esri/layers/BaseTileLayer',
   'esri/layers/FeatureLayer',
   'esri/layers/WebTileLayer',
 
@@ -30,11 +25,11 @@ require([
   'esri/views/SceneView',
 
   'esri/widgets/Locate',
+  'esri/widgets/BasemapToggle',
 ], function(
-  promiseUtils,
-  BaseElevationLayer, BaseTileLayer, FeatureLayer, WebTileLayer,
+  BaseElevationLayer, FeatureLayer, WebTileLayer,
   Map, SceneView,
-  Locate
+  Locate, BasemapToggle
 ) {
   // helper function that returns an instance of the Black Marble WebTileLayer
   // (it'll be reused by both the 3D ground terrain layer and the 2D layer draped on top)
@@ -123,25 +118,9 @@ require([
     }
   });
 
-  // a utility black base layer class for SceneView and MapView adapted from @ycabon's codepen
-  // https://codepen.io/ycabon/pen/gvXqqj?editors=1000
-  // its purpose is to simply override the default graticule on the SceneView's globe
-  var BlackLayerClass = BaseTileLayer.createSubclass({
-    constructor: function() {
-      var canvas = this.canvas = document.createElement('canvas');
-      canvas.width = canvas.height = 256;
-      var ctx = canvas.getContext('2d');
-      ctx.fillRect(0, 0, 256, 256);
-    },
-    fetchTile: function() {
-      return promiseUtils.resolve(this.canvas);
-    }
-  });
-
   // create layer instances and then create SceneView, Map, widgets, etc.
   // - earthAtNight3DLayer
   // - earthAtNight2DLayer
-  // - blackLayer
   // - citiesLayer
 
   // this instance of the Black Marble WebTileLayer will be an operational layer that will be draped over the SceneView's custom ground terrain
@@ -150,7 +129,10 @@ require([
   // this instance of the custom 3D ground terrain elevation layer will be provided to the SceneView's ground layers property
   var earthAtNight3DLayer = new EarthAtNight3DLayerClass();
 
-  var blackLayer = new BlackLayerClass();
+  var thumbnailUrls = [
+    'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_Black_Marble/default/2016-01-01/GoogleMapsCompatible_Level8/7/54/75.png',
+    'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_Black_Marble/default/2016-01-01/GoogleMapsCompatible_Level8/7/40/77.png'
+  ];
 
   // this cities feature layer provides the labeled callouts
   // https://developers.arcgis.com/javascript/latest/sample-code/visualization-point-styles/index.html
@@ -216,17 +198,19 @@ require([
     map: new Map({
       basemap: {
         baseLayers: [
-          blackLayer,
-        ]
+          earthAtNight2DLayer
+        ],
+        title: 'Nighttime Lights',
+        id: 'nighttime',
+        thumbnailUrl: thumbnailUrls[0]
       },
-      // basemap: 'satellite',
       ground: {
         layers: [
           earthAtNight3DLayer
-        ]
+        ],
+        surfaceColor: 'black'
       },
       layers: [
-        earthAtNight2DLayer,
         citiesLayer
       ]
     }),
@@ -246,42 +230,18 @@ require([
     }
   });
 
+  // add some additional widgets when the view is ready
   view.when(function(view) {
     var credits = document.getElementById('credits');
     view.ui.add(credits, 'bottom-right');
     credits.style.display = 'flex';
 
-    // TODO: add a toggle to see satellite imagery draped over the custom ground terrain
-    // and research if possible to animate to a "true" elevation ground terrain
-    // view.map.basemap = 'satellite'
-    // view.map.basemap.baseLayers.getItemAt(0).opacity = 0.5
-    // earthAtNight2DLayer.opacity = 0.5;
-    // earthAtNight2DLayer.visible = false;
-
-    // earthAtNight2DLayer.opacity = 0;
-    // view.map.basemap = 'satellite';
-
-    // view.map.basemap.baseLayers.getItemAt(0).opacity = 0;
-
-    // anime({
-    //   targets: earthAtNight2DLayer,
-    //   opacity: 0,
-    //   duration: 2000,
-    //   delay: 0,
-    //   easing: 'linear',
-    //   direction: 'alternate',
-    //   loop: true
-    // });
-
-    // anime({
-    //   targets: view.map.basemap.baseLayers.getItemAt(0),
-    //   opacity: 1,
-    //   duration: 2000,
-    //   delay: 0,
-    //   easing: 'linear',
-    //   direction: 'alternate',
-    //   loop: true
-    // });
+    // add a BasemapToggle widget to be able to see satellite imagery with custom terrain
+    view.ui.add(new BasemapToggle({
+      titleVisible: true,
+      view: view,
+      nextBasemap: 'satellite'
+    }), 'top-right');
 
     // add a Locate widget and override its behavior
     // by zooming out to space and then in to the user's location
@@ -299,14 +259,15 @@ require([
           speedFactor: 0.25
         })
           .then(function() {
+            goToParams.target.scale = 3400000;
             goToParams.target.tilt = 55;
-            goToParams.target.scale = 650000;
             goToParams.target.heading = originalHeading;
+
             return view.goTo(goToParams.target, {
               speedFactor: 0.5
             });
           });
       }
-    }), 'top-left');
+    }), 'top-right');
   });
 });
