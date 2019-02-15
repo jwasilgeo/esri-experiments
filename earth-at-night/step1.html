@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta name="description" content="Explore the Earth at night as seen by Suomi NPP VIIRS using the Esri ArcGIS API for JavaScript. Lights are rendered as 3D terrain.">
+
+  <title>Earth at Night by @JWasilGeo</title>
+
+  <link rel="stylesheet" href="https://js.arcgis.com/4.10/esri/css/main.css">
+  <style>
+    html,
+    body,
+    #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+
+  </style>
+</head>
+
+<body>
+  <div id="viewDiv"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.0.2/chroma.min.js"></script>
+  <script src="https://js.arcgis.com/4.10/"></script>
+  <script>
+    require([
+      'esri/layers/WebTileLayer',
+
+      'esri/Map',
+      'esri/views/SceneView'
+    ], function(
+      WebTileLayer,
+      Map, SceneView
+    ) {
+        // helper function that returns an instance of the Black Marble WebTileLayer
+        // (it'll be reused by both the 3D ground terrain layer and the 2D layer draped on top)
+        function createEarthAtNightWebTileLayer() {
+          var earthAtNightWebTileLayer = new WebTileLayer({
+            urlTemplate: 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_Black_Marble/default/2016-01-01/GoogleMapsCompatible_Level8/{level}/{row}/{col}.png',
+            copyright: 'Imagery provided by services from the Global Imagery Browse Services (GIBS), operated by the NASA/GSFC/Earth Science Data and Information System (<a href="https://earthdata.nasa.gov">ESDIS</a>) with funding provided by NASA/HQ.'
+          });
+
+          // only tile zoom levels 1 through 8 exist on the server resource,
+          // thus we remove levels 0 and 9+ from the tileInfo.lods array to block attempts at fetching those tiles
+          earthAtNightWebTileLayer.tileInfo.lods.splice(0, 1);
+          earthAtNightWebTileLayer.tileInfo.lods.splice(8);
+
+          return earthAtNightWebTileLayer;
+        }
+
+        // this instance of the Black Marble WebTileLayer will be an operational layer that will be draped over the SceneView's custom ground terrain
+        var earthAtNight2DLayer = createEarthAtNightWebTileLayer();
+
+        var view = new SceneView({
+          container: 'viewDiv',
+          map: new Map({
+            ground: 'world-elevation',
+            basemap: {
+              baseLayers: [
+                earthAtNight2DLayer
+              ]
+            }
+          }),
+          camera: {
+            position: {
+              longitude: 24,
+              latitude: 24,
+              z: 650000
+            },
+            heading: 40,
+            tilt: 55
+          },
+          environment: {
+            atmosphere: {
+              quality: 'high'
+            }
+          }
+        });
+      });
+
+  </script>
+</body>
+
+</html>
