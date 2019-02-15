@@ -1,21 +1,3 @@
-// TODO: outline main points
-//  - JSAPI 4 and Chroma.js "luminance"
-//  - custom 3D terrain layer
-//  - 2D tiles draped over custom terrain
-//  - custom feature layer with city label "callouts"
-//  - put together list of JSAPI official samples and docs that inspired this
-//  - this also opens up possibilities of other 3D terrain layers for thematic (gridded) data
-//  - create a series of demos with increasing complexity
-//    1. basic sceneview with only the 2D WebTileLayer
-//    2. add the custom 3D terrain to the sceneview's ground property and also set ground.surfaceColor
-//    3. add the callout labels layer
-//    4. add the custom black layer and other widgets
-
-// DS2019 notes:
-// THIS TALK: https://devsummit2019.schedule.esri.com/schedule/1434288976
-// advertise the demo theater dedicated to advanced webgl https://devsummit2019.schedule.esri.com/schedule/1892792668
-
-
 require([
   'esri/layers/BaseElevationLayer',
   'esri/layers/FeatureLayer',
@@ -47,7 +29,6 @@ require([
     return earthAtNightWebTileLayer;
   }
 
-  // TODO: pull this out into a separate module
   // this is the custom 3D ground terrain elevation layer class
   // internally, it also relies on the Black Marble WebTileLayer to calculate elevation values
   var EarthAtNight3DLayerClass = BaseElevationLayer.createSubclass({
@@ -99,10 +80,10 @@ require([
             var luminance = new chroma([r, g, b]).luminance();
 
             // apply the terrain exaggeration factor to arrive at an elevation value
-            // e.g. 0.75 luminance becomes a height of 63,750
+            // e.g. 0.75 luminance becomes a height of 63,750 meters
             var elevation = luminance * this.exaggerationFactor;
 
-            // add the individual value to the elevations array
+            // add the individual height value to the elevations array
             elevations.push(elevation);
           }
 
@@ -129,13 +110,7 @@ require([
   // this instance of the custom 3D ground terrain elevation layer will be provided to the SceneView's ground layers property
   var earthAtNight3DLayer = new EarthAtNight3DLayerClass();
 
-  var thumbnailUrls = [
-    'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_Black_Marble/default/2016-01-01/GoogleMapsCompatible_Level8/7/54/75.png',
-    'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_Black_Marble/default/2016-01-01/GoogleMapsCompatible_Level8/7/40/77.png'
-  ];
-
   // this cities feature layer provides the labeled callouts
-  // https://developers.arcgis.com/javascript/latest/sample-code/visualization-point-styles/index.html
   var citiesLayer = new FeatureLayer({
     url: 'https://services.arcgis.com/P3ePLMYs2RVChkJx/ArcGIS/rest/services/World_Cities/FeatureServer/0',
     elevationInfo: {
@@ -196,19 +171,19 @@ require([
   var view = new SceneView({
     container: 'viewDiv',
     map: new Map({
+      ground: {
+        layers: [
+          earthAtNight3DLayer
+        ],
+        surfaceColor: 'black'
+      },
       basemap: {
         baseLayers: [
           earthAtNight2DLayer
         ],
         title: 'Nighttime Lights',
         id: 'nighttime',
-        thumbnailUrl: thumbnailUrls[0]
-      },
-      ground: {
-        layers: [
-          earthAtNight3DLayer
-        ],
-        surfaceColor: 'black'
+        thumbnailUrl: 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_Black_Marble/default/2016-01-01/GoogleMapsCompatible_Level8/7/54/75.png'
       },
       layers: [
         citiesLayer

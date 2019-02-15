@@ -194,16 +194,16 @@
         var view = new SceneView({
           container: 'viewDiv',
           map: new Map({
-            basemap: {
-              baseLayers: [
-                earthAtNight2DLayer
-              ]
-            },
             ground: {
               layers: [
                 earthAtNight3DLayer
               ],
               surfaceColor: 'black'
+            },
+            basemap: {
+              baseLayers: [
+                earthAtNight2DLayer
+              ]
             },
             layers: [
               citiesLayer

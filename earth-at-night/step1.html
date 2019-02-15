@@ -59,12 +59,12 @@
         var view = new SceneView({
           container: 'viewDiv',
           map: new Map({
+            ground: 'world-elevation',
             basemap: {
               baseLayers: [
                 earthAtNight2DLayer
               ]
-            },
-            ground: 'world-elevation'
+            }
           }),
           camera: {
             position: {
