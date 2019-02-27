@@ -24,6 +24,8 @@ Find out what lies across the ocean and beyond by traveling around the Earth. 3D
 
 Explore the Earth at night as seen by Suomi NPP VIIRS. Light emissions are used as the world's thematic elevation layer by using [chroma.js](https://gka.github.io/chroma.js/) to calculate pixel color luminance.
 
+[![screenshot](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/earth-at-night/screenshot.jpg)](https://jwasilgeo.github.io/esri-experiments/earth-at-night)
+
 [![screenshot](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/earth-at-night/screenshot.png)](https://jwasilgeo.github.io/esri-experiments/earth-at-night)
 
 ## [iss-view](https://jwasilgeo.github.io/esri-experiments/iss-view)

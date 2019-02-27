@@ -118,7 +118,7 @@ require([
     },
     returnZ: false,
     minScale: 25000000,
-    definitionExpression: 'POP_RANK <= 5 OR STATUS LIKE \'%National%\'',
+    definitionExpression: 'POP_RANK <= 6 OR STATUS LIKE \'%National%\'',
     outFields: ['CITY_NAME'],
     screenSizePerspectiveEnabled: true,
     featureReduction: {
@@ -191,17 +191,20 @@ require([
     }),
     camera: {
       position: {
-        longitude: 24,
-        latitude: 24,
+        longitude: 36.68,
+        latitude: 24.44,
         z: 650000
       },
-      heading: 40,
+      heading: 320,
       tilt: 55
     },
     environment: {
       atmosphere: {
         quality: 'high'
       }
+    },
+    ui: {
+      components: ['attribution', 'zoom', 'compass']
     }
   });
 

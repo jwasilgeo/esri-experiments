@@ -8,7 +8,7 @@
 
   <title>Earth at Night by @JWasilGeo</title>
 
-  <link rel="stylesheet" href="https://js.arcgis.com/4.10/esri/css/main.css">
+  <link rel="stylesheet" href="https://js.arcgis.com/4.11/esri/css/main.css">
   <style>
     html,
     body,
@@ -25,8 +25,8 @@
 <body>
   <div id="viewDiv"></div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.0.2/chroma.min.js"></script>
-  <script src="https://js.arcgis.com/4.10/"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.0.3/chroma.min.js"></script>
+  <script src="https://js.arcgis.com/4.11/"></script>
   <script>
     require([
       'esri/layers/BaseElevationLayer',
@@ -148,17 +148,20 @@
           }),
           camera: {
             position: {
-              longitude: 24,
-              latitude: 24,
+              longitude: 36.68,
+              latitude: 24.44,
               z: 650000
             },
-            heading: 40,
+            heading: 320,
             tilt: 55
           },
           environment: {
             atmosphere: {
               quality: 'high'
             }
+          },
+          ui: {
+            components: ['attribution', 'zoom', 'compass']
           }
         });
       });
