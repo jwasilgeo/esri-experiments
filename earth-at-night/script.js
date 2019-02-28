@@ -202,9 +202,6 @@ require([
       atmosphere: {
         quality: 'high'
       }
-    },
-    ui: {
-      components: ['attribution', 'zoom', 'compass']
     }
   });
 
