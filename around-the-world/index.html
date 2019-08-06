@@ -8,8 +8,8 @@
 
   <title>Around the World</title>
 
-  <link rel="stylesheet" href="https://js.arcgis.com/4.6/esri/css/view.css">
-  <link rel="stylesheet" href="https://unpkg.com/dragdealer@0.9.9/src/dragdealer.css">
+  <link rel="stylesheet" href="https://js.arcgis.com/4.12/esri/css/view.css">
+  <link rel="stylesheet" href="https://unpkg.com/dragdealer@0.10.0/src/dragdealer.css">
   <style>
     html,
     body,
@@ -73,14 +73,17 @@
       left: 0;
       right: 0;
       margin: 0 auto;
-      transition: opacity 0.3s ease-in;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
       background-color: rgba(255, 255, 255, 0.9);
+      transition: height 0.3s ease-in;
     }
 
     .antipode-info {
       text-align: center;
       opacity: 0;
+      display: none;
+      transition: opacity 0.3s ease-in;
+      margin-bottom: 14px;
     }
 
     .antipode-info a {
@@ -93,10 +96,19 @@
       display: none;
       width: 50px;
       height: 50px;
+      padding: 2px;
     }
 
     .switch-view a {
-      font-size: 3.3em;
+      color: #323232;
+    }
+
+    .switch-view a span {
+      font-size: 46px;
+    }
+
+    #switch3dView.switch-view a span {
+      font-size: 49px;
     }
 
     .credits {
@@ -132,17 +144,23 @@
       <ol style="padding-left: 25px;">
         <li>Click on the Earth to stand somewhere.</li>
         <li>Move the red slider to face any direction.</li>
-        <li>Follow the line to see what lies beyond...</li>
+        <li>Follow the line to see what lies beyond.</li>
       </ol>
+
+      <div id="antipodeInfo" class="antipode-info">
+        The two red markers are <a href="https://jwasilgeo.github.io/esri-experiments/antipodes/" target="_blank">antipodes</a>.
+      </div>
     </div>
 
-    <div id="antipodeInfo" class="esri-widget esri-component info-text-box antipode-info">
-      The two red markers are <a href="https://jwasilgeo.github.io/esri-experiments/antipodes/" target="_blank">antipodes</a>.
-    </div>
-
-    <div id="switchView" class="esri-widget-button esri-widget esri-component switch-view">
-      <a href="https://jwasilgeo.github.com/esri-experiments/around-the-world/?isMobile=1" title="Switch to 2D map">
+    <div id="switch2dView" class="esri-widget-button esri-widget esri-component switch-view">
+      <a href="https://jwasilgeo.github.com/esri-experiments/around-the-world/?is2dView=1" title="Switch to 2D map">
         <span class="esri-icon esri-icon-maps"></span>
+      </a>
+    </div>
+
+    <div id="switch3dView" class="esri-widget-button esri-widget esri-component switch-view">
+      <a href="https://jwasilgeo.github.com/esri-experiments/around-the-world/" title="Switch to 3D globe">
+        <span class="esri-icon esri-icon-globe"></span>
       </a>
     </div>
 
@@ -153,8 +171,8 @@
 
   </div>
 
-  <script src="https://unpkg.com/dragdealer@0.9.9"></script>
-  <script src="https://js.arcgis.com/4.6/"></script>
+  <script src="https://unpkg.com/dragdealer@0.10.0"></script>
+  <script src="https://js.arcgis.com/4.12/"></script>
   <script src="script.js"></script>
 </body>
 

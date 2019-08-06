@@ -1,5 +1,4 @@
 require([
-  'esri/config',
   'esri/core/urlUtils',
 
   'esri/geometry/geometryEngineAsync',
@@ -13,7 +12,6 @@ require([
   'esri/symbols/LineSymbol3D',
   'esri/symbols/LineSymbol3DLayer',
   'esri/symbols/ObjectSymbol3DLayer',
-  'esri/symbols/PathSymbol3DLayer',
   'esri/symbols/PointSymbol3D',
   'esri/symbols/SimpleLineSymbol',
   'esri/symbols/SimpleMarkerSymbol',
@@ -23,18 +21,18 @@ require([
 
   'esri/widgets/Locate'
 ], function(
-  esriConfig, urlUtils,
+  urlUtils,
   geometryEngineAsync, Point, Polyline, Graphic, GraphicsLayer, WebTileLayer, Map,
-  LineSymbol3D, LineSymbol3DLayer, ObjectSymbol3DLayer, PathSymbol3DLayer, PointSymbol3D, SimpleLineSymbol, SimpleMarkerSymbol,
+  LineSymbol3D, LineSymbol3DLayer, ObjectSymbol3DLayer, PointSymbol3D, SimpleLineSymbol, SimpleMarkerSymbol,
   MapView, SceneView,
   Locate
 ) {
-  esriConfig.request.corsEnabledServers.push(
-    'stamen-tiles-a.a.ssl.fastly.net',
-    'stamen-tiles-b.a.ssl.fastly.net',
-    'stamen-tiles-c.a.ssl.fastly.net',
-    'stamen-tiles-d.a.ssl.fastly.net'
-  );
+  // esriConfig.request.corsEnabledServers.push(
+  //   'stamen-tiles-a.a.ssl.fastly.net',
+  //   'stamen-tiles-b.a.ssl.fastly.net',
+  //   'stamen-tiles-c.a.ssl.fastly.net',
+  //   'stamen-tiles-d.a.ssl.fastly.net'
+  // );
 
   var rotateControl = document.getElementById('rotateControl'),
     // handleOuterNode = document.querySelector('.handle'),
@@ -42,34 +40,48 @@ require([
     creditsNode = document.getElementById('credits'),
     instructionsNode = document.getElementById('instructions'),
     antipodeInfoNode = document.getElementById('antipodeInfo'),
-    switchViewNode = document.getElementById('switchView'),
+    switch2dViewNode = document.getElementById('switch2dView'),
+    switch3dViewNode = document.getElementById('switch3dView'),
     dragdealerElement = null,
     clickedMapPoint = null,
     locateWidget;
 
-  var isMobile = (
-    /Android|webOS|iPhone|iPad|iPod|BlackBerry|Opera Mini|IEMobile/i.test(navigator.userAgent) ||
-    (urlUtils.urlToObject(window.location.href).query && !!(Number(urlUtils.urlToObject(window.location.href).query.isMobile)))
+  var is2dView = (
+    urlUtils.urlToObject(window.location.href).query &&
+    !!(Number(urlUtils.urlToObject(window.location.href).query.is2dView))
   );
 
-  var ViewModule = isMobile ? MapView : SceneView;
+  var ViewModule = is2dView ? MapView : SceneView;
 
   // establish conditional line and point symbols depending on if MapView or SceneView
-  var lineSymbol = isMobile ?
+  var lineSymbol = is2dView ?
     new SimpleLineSymbol({
       color: '#673ab7',
       width: 7
     }) :
-    new LineSymbol3D({
-      symbolLayers: [new LineSymbol3DLayer({
-        size: 8.5,
+    {
+      type: 'line-3d',
+      symbolLayers: [{
+        type: 'path',
+        profile: 'quad',
         material: {
           color: '#673ab7'
-        }
-      })]
-    });
+        },
+        width: 200000, // the width in m
+        height: 200000, // the height in m
+        profileRotation: 'heading'
+      }]
+    };
+    // new LineSymbol3D({
+    //   symbolLayers: [new LineSymbol3DLayer({
+    //     size: 8.5,
+    //     material: {
+    //       color: '#673ab7'
+    //     }
+    //   })]
+    // });
 
-  var pointSymbol = isMobile ?
+  var pointSymbol = is2dView ?
     new SimpleMarkerSymbol({
       color: '#f44336',
       outline: {
@@ -101,13 +113,14 @@ require([
       layers: [
         // use Stamen Toner for the basemap tiles
         new WebTileLayer({
-          urlTemplate: '//stamen-tiles-{subDomain}.a.ssl.fastly.net/toner/{level}/{col}/{row}.png',
+          // opacity: 0.4,
+          urlTemplate: 'https://stamen-tiles-{subDomain}.a.ssl.fastly.net/toner/{level}/{col}/{row}.png',
           subDomains: ['a', 'b', 'c', 'd'],
           copyright: [
-            'Map tiles by <a href="http://stamen.com">Stamen Design</a>, ',
-            'under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. ',
-            'Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, ',
-            'under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.'
+            'Map tiles by <a href="https://stamen.com/">Stamen Design</a>, ',
+            'under <a href="https://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. ',
+            'Data by <a href="https://openstreetmap.org">OpenStreetMap</a>, ',
+            'under <a href="https://www.openstreetmap.org/copyright">ODbL</a>.'
           ].join()
         }),
         analysisGraphicsLayer
@@ -120,12 +133,15 @@ require([
     }
   });
 
-  if (!isMobile) {
-    // set SceneView atmosphere to best quality
-    view.environment.atmosphere.quality = 'high';
-  }
 
   view.when(function(view) {
+    if (!is2dView) {
+      // set SceneView atmosphere to best quality
+      // view.environment.atmosphere.quality = 'high';
+      view.map.ground.layers.removeAll();
+      // view.map.ground.opacity = 0.4;
+    }
+
     // position and show the credits element and rotate control element
     view.ui.add(creditsNode, 'bottom-right');
     creditsNode.style.display = 'block';
@@ -136,12 +152,13 @@ require([
     view.ui.add(instructionsNode);
     instructionsNode.style.display = 'block';
 
-    view.ui.add(antipodeInfoNode);
-
     // conditionally show the button to switch to 2d mapview
-    if (!isMobile) {
-      view.ui.add(switchViewNode, 'bottom-left');
-      switchViewNode.style.display = 'flex';
+    if (!is2dView) {
+      view.ui.add(switch2dViewNode, 'bottom-left');
+      switch2dViewNode.style.display = 'flex';
+    } else {
+      view.ui.add(switch3dViewNode, 'bottom-left');
+      switch3dViewNode.style.display = 'flex';
     }
 
     locateWidget = new Locate({
@@ -236,23 +253,22 @@ require([
       }
     });
 
+    // TODO: any major performance difference between these?
+    // - https://developers.arcgis.com/javascript/latest/api-reference/esri-geometry-geometryEngineAsync.html#geodesicDensify
+    // - https://developers.arcgis.com/javascript/latest/api-reference/esri-geometry-support-geodesicUtils.html#geodesicDensify
+
     // geodetically densify the basic wrap around line
-    geometryEngineAsync.geodesicDensify(wrapAroundLine, 10000).then(function(geodesicLine) {
+    var maxSegmentLength = is2dView ? 100000 : 1000000;
+    geometryEngineAsync.geodesicDensify(wrapAroundLine, maxSegmentLength).then(function(geodesicLine) {
       // render the geodesic line and the antipodes in the view
       handleGeodesicDensify(geodesicLine, wrapAroundLine);
 
-      // hide the instructions text (once)
-      if (instructionsNode.style.display !== 'none') {
+      // show the results text (once)
+      if (antipodeInfoNode.style.opacity !== '1') {
         // with css transition this will fade out
-        instructionsNode.style.opacity = '0';
-        // also set display to be none after the transition
+        antipodeInfoNode.style.display = 'block';
         setTimeout(function() {
-          instructionsNode.style.display = 'none';
-          viewWidthChange(view.widthBreakpoint);
-          antipodeInfoNode.style.display = 'block';
-          setTimeout(function() {
-            antipodeInfoNode.style.opacity = '1';
-          }, 300);
+          antipodeInfoNode.style.opacity = '1';
         }, 300);
       }
     }, function(err) {
@@ -283,18 +299,15 @@ require([
       view.ui.move(rotateControl, 'manual');
       if (instructionsNode.style.display !== 'none') {
         view.ui.move(instructionsNode, 'manual');
-      } else {
-        view.ui.move(antipodeInfoNode, 'manual');
       }
       view.ui.move('zoom', 'bottom-left');
-      view.ui.move(switchViewNode, 'bottom-left');
+      view.ui.move(switch2dViewNode, 'bottom-left');
+      view.ui.move(switch3dViewNode, 'bottom-left');
       view.ui.move(locateWidget, 'bottom-left');
     } else {
       view.ui.move(rotateControl, 'top-right');
       if (instructionsNode.style.display !== 'none') {
         view.ui.move(instructionsNode, 'top-right');
-      } else {
-        view.ui.move(antipodeInfoNode, 'top-right');
       }
       view.ui.move('zoom', 'top-left');
     }
