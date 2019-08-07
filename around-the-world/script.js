@@ -1,7 +1,7 @@
 require([
   'esri/core/urlUtils',
 
-  'esri/geometry/geometryEngineAsync',
+  'esri/geometry/support/geodesicUtils',
   'esri/geometry/Point',
   'esri/geometry/Polyline',
   'esri/Graphic',
@@ -22,18 +22,11 @@ require([
   'esri/widgets/Locate'
 ], function(
   urlUtils,
-  geometryEngineAsync, Point, Polyline, Graphic, GraphicsLayer, WebTileLayer, Map,
+  geodesicUtils, Point, Polyline, Graphic, GraphicsLayer, WebTileLayer, Map,
   LineSymbol3D, LineSymbol3DLayer, ObjectSymbol3DLayer, PointSymbol3D, SimpleLineSymbol, SimpleMarkerSymbol,
   MapView, SceneView,
   Locate
 ) {
-  // esriConfig.request.corsEnabledServers.push(
-  //   'stamen-tiles-a.a.ssl.fastly.net',
-  //   'stamen-tiles-b.a.ssl.fastly.net',
-  //   'stamen-tiles-c.a.ssl.fastly.net',
-  //   'stamen-tiles-d.a.ssl.fastly.net'
-  // );
-
   var rotateControl = document.getElementById('rotateControl'),
     // handleOuterNode = document.querySelector('.handle'),
     handleInnerNode = document.querySelector('.esri-icon-rotate'),
@@ -237,7 +230,7 @@ require([
 
     latitudeShift = latitudeShift || (dragdealerElement.getValue()[0] - 0.5) * 180;
 
-    // create a basic line at the clicked point and wrap it around the Earth
+    // create a simple line at the clicked point and wrap it around the Earth
     var wrapAroundLine = new Polyline({
       paths: [
         [
@@ -253,27 +246,21 @@ require([
       }
     });
 
-    // TODO: any major performance difference between these?
-    // - https://developers.arcgis.com/javascript/latest/api-reference/esri-geometry-geometryEngineAsync.html#geodesicDensify
-    // - https://developers.arcgis.com/javascript/latest/api-reference/esri-geometry-support-geodesicUtils.html#geodesicDensify
-
-    // geodetically densify the basic wrap around line
+    // geodetically densify the simple wrap-around line
     var maxSegmentLength = is2dView ? 100000 : 1000000;
-    geometryEngineAsync.geodesicDensify(wrapAroundLine, maxSegmentLength).then(function(geodesicLine) {
-      // render the geodesic line and the antipodes in the view
-      handleGeodesicDensify(geodesicLine, wrapAroundLine);
+    var geodesicLine = geodesicUtils.geodesicDensify(wrapAroundLine, maxSegmentLength);
 
-      // show the results text (once)
-      if (antipodeInfoNode.style.opacity !== '1') {
-        // with css transition this will fade out
-        antipodeInfoNode.style.display = 'block';
-        setTimeout(function() {
-          antipodeInfoNode.style.opacity = '1';
-        }, 300);
-      }
-    }, function(err) {
-      console.error(err);
-    });
+    // render the geodesic line and the antipodes in the view
+    handleGeodesicDensify(geodesicLine, wrapAroundLine);
+
+    // show the results text (once)
+    if (antipodeInfoNode.style.opacity !== '1') {
+      // with css transition this will fade in
+      antipodeInfoNode.style.display = 'block';
+      setTimeout(function() {
+        antipodeInfoNode.style.opacity = '1';
+      }, 300);
+    }
   }
 
   function handleGeodesicDensify(geodesicLine, wrapAroundLine) {

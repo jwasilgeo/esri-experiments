@@ -54,6 +54,7 @@
       border-radius: 100%;
       transition: width 0.1s ease-in, height 0.1s ease-in, top 0.1s ease-in, font-size 0.1s ease-in;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      border: 1px solid white;
     }
 
     .handle.esri-widget-button:active {
@@ -75,20 +76,19 @@
       margin: 0 auto;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
       background-color: rgba(255, 255, 255, 0.9);
-      transition: height 0.3s ease-in;
+      transition: height 0.5s ease-in;
     }
 
     .antipode-info {
       text-align: center;
       opacity: 0;
       display: none;
-      transition: opacity 0.3s ease-in;
+      transition: opacity 0.5s ease-in;
       margin-bottom: 14px;
     }
 
     .antipode-info a {
       color: #f44336;
-      font-weight: bold;
       text-decoration: underline;
     }
 
@@ -122,6 +122,9 @@
       color: #323232;
       margin: 0 7px;
       font-size: 1.15em;
+    }
+
+    .bold-font {
       font-weight: bold;
     }
 
@@ -142,31 +145,31 @@
 
     <div id="instructions" class="esri-widget esri-component info-text-box">
       <ol style="padding-left: 25px;">
-        <li>Click on the Earth to stand somewhere.</li>
-        <li>Move the red slider to face any direction.</li>
-        <li>Follow the line to see what lies beyond.</li>
+        <li><span class="bold-font">Click</span> on the Earth to stand somewhere.</li>
+        <li><span class="bold-font">Move</span> the red slider to face any direction.</li>
+        <li><span class="bold-font">Follow</span> the line to see what lies beyond.</li>
       </ol>
 
       <div id="antipodeInfo" class="antipode-info">
-        The two red markers are <a href="https://jwasilgeo.github.io/esri-experiments/antipodes/" target="_blank">antipodes</a>.
+        The two red markers are <a class="bold-font" href="https://jwasilgeo.github.io/esri-experiments/antipodes/" target="_blank">antipodes</a>.
       </div>
     </div>
 
     <div id="switch2dView" class="esri-widget-button esri-widget esri-component switch-view">
-      <a href="https://jwasilgeo.github.com/esri-experiments/around-the-world/?is2dView=1" title="Switch to 2D map">
+      <a href="./?is2dView=1" title="Switch to 2D map">
         <span class="esri-icon esri-icon-maps"></span>
       </a>
     </div>
 
     <div id="switch3dView" class="esri-widget-button esri-widget esri-component switch-view">
-      <a href="https://jwasilgeo.github.com/esri-experiments/around-the-world/" title="Switch to 3D globe">
+      <a href="./" title="Switch to 3D globe">
         <span class="esri-icon esri-icon-globe"></span>
       </a>
     </div>
 
     <div id="credits" class="esri-widget esri-component credits">
-      <a target="_blank" href="https://twitter.com/JWasilGeo">@JWasilGeo</a> |
-      <a target="_blank" href="https://github.com/jwasilgeo/esri-experiments">Github</a>
+      <a class="bold-font" target="_blank" href="https://twitter.com/JWasilGeo">@JWasilGeo</a> |
+      <a class="bold-font" target="_blank" href="https://github.com/jwasilgeo/esri-experiments">Github</a>
     </div>
 
   </div>
