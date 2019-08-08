@@ -1,4 +1,3 @@
-var sceneView;
 require([
   'esri/geometry/support/geodesicUtils',
   'esri/geometry/Point',
@@ -111,7 +110,7 @@ require([
   });
 
   // the view is either a MapView or a SceneView
-  sceneView = new SceneView({
+  var sceneView = new SceneView({
     container: 'sceneViewDiv',
     map: new Map({
       basemap: basemap,
@@ -312,6 +311,7 @@ require([
     if (widthBreakpoint === 'xsmall') {
       sceneView.ui.move(rotateControl, 'manual');
       sceneView.ui.move(instructionsNode, 'manual');
+      instructionsNode.style.lineHeight = '1.0em';
       sceneView.ui.move('compass', 'bottom-left');
       sceneView.ui.add(locateWidget, 'bottom-left');
 
@@ -324,6 +324,7 @@ require([
     } else if (widthBreakpoint === 'small') {
       sceneView.ui.move(rotateControl, 'manual');
       sceneView.ui.move(instructionsNode, 'manual');
+      instructionsNode.style.lineHeight = 'inherit';
       sceneView.ui.move('compass', 'bottom-left');
       sceneView.ui.add(locateWidget, 'bottom-left');
 
@@ -336,6 +337,7 @@ require([
     } else {
       sceneView.ui.move(rotateControl, 'top-right');
       sceneView.ui.move(instructionsNode, 'top-right');
+      instructionsNode.style.lineHeight = 'inherit';
       sceneView.ui.move('compass', 'top-left');
       sceneView.ui.add(locateWidget, 'top-left');
 
