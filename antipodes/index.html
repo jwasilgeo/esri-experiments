@@ -16,7 +16,8 @@
       margin: 0;
       height: 100%;
       overflow: hidden;
-      font-family: "Avenir Next W01", "Avenir Next", Avenir, "Helvetica Neue", Helvetica, Arial, sans-serif
+      font-family: monospace;
+      font-size: 1em;
     }
 
     .esri-view {
@@ -85,6 +86,10 @@
       font-size: calc(1vw + 0.25vh + 5vmin);
     }
 
+    #mainContent {
+      display: none;
+    }
+
     .error-message {
       text-align: center;
       display: none;
@@ -93,6 +98,10 @@
       font-size: 1.5em;
       font-weight: bold;
       cursor: default;
+    }
+
+    .error-message p {
+      margin: 10px 0;
     }
 
   </style>
@@ -110,12 +119,14 @@
         </div>
       </div>
     </div>
+
     <div class="panel minor">
       <div id="sceneViewDivB"></div>
     </div>
+
     <div class="panel minor stats">
       <div class="top-right-panel">
-        <div class="a-bit-smaller">THEN LOOK UP <span style="bottom: 6px; position: relative;">&uarr;</span></div>
+        <div class="a-bit-smaller">THEN LOOK UP HERE <span style="bottom: 6px; position: relative;">&uarr;</span></div>
         <div class="a-bit-smaller-2x">(that's the opposite side of the Earth!)</div>
         <div id="altitudeB">---</div>
       </div>
@@ -126,21 +137,24 @@
       <div class="bottom-left-panel">
         <div id="altitudeA">---</div>
         <div class="a-bit-smaller">
-          &larr; INTERACT HERE
+          &larr; INTERACT OVER HERE
         </div>
       </div>
     </div>
   </span>
 
   <div id="errorMessage" class="error-message">
-    <h2 class="upside-down" style="margin:0;"><a href="https://en.wikipedia.org/wiki/Antipodes">ANTIPODES</a></h2>
-    <h2 style="margin:0;"><a href="https://en.wikipedia.org/wiki/Antipodes">ANTIPODES</a></h2>
+    <h1 class="upside-down" style="margin:0;"><a href="https://en.wikipedia.org/wiki/Antipodes">ANTIPODES</a></h1>
+    <h1 style="margin: 0;"><a href="https://en.wikipedia.org/wiki/Antipodes">ANTIPODES</a></h1>
     <p>Whoops!</p>
-    <p>You'll need a device/browser that supports WebGL.</p>
-    <a href="https://jwasilgeo.github.io/esri-experiments/antipodes-2d">Check out this 2D version.</a>
-    <br/>
-    <a href="https://github.com/jwasilgeo/esri-experiments">Or, learn more here.</a>
-    <img src="antipodes.gif" width="100%" />
+    <p>This geoviz experiment's layout is currently intended for non-mobile devices.</p>
+    <p>
+      Check out <a href="https://jwasilgeo.github.io/esri-experiments/antipodes-2d">this 2D version</a> or <a href="https://jwasilgeo.github.io/esri-experiments/around-the-world">this other cool thing</a>.
+    </p>
+    <p>
+      You can also learn more <a href="https://github.com/jwasilgeo/esri-experiments">over here on Github</a>.
+    </p>
+    <img alt="animated gif of antipodes shown on 2 globes" width="100%" />
   </div>
 
   <script src="https://js.arcgis.com/4.6/"></script>
