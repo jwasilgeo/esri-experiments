@@ -1,3 +1,4 @@
+var mapViewTop;
 require([
   'esri/layers/FeatureLayer',
   'esri/Map',
@@ -16,11 +17,11 @@ require([
   // MapView and Map initial values
   var longLatTop = [-5.936, 39.296]; // top map view start location
   var longLatAntipode = [180 + longLatTop[0], -longLatTop[1]]; // antipode map view start location
-  var scale = 30000000;
+  var scale = 100000000;
   var countriesUrl = 'https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/World_Countries_(Generalized)/FeatureServer/0';
-  var countriesOutFields = ['FID', 'Country'];
+  var countriesOutFields = ['Country'];
 
-  var mapViewTop = new MapView({
+  mapViewTop = new MapView({
     container: 'viewDivTop',
     map: new Map({
       layers: [new FeatureLayer({
@@ -35,7 +36,8 @@ require([
       components: ['zoom', 'compass', 'attribution']
     },
     constraints: {
-      minScale: 240000000
+      minScale: 240000000,
+      maxScale: 5515102
     }
   });
 
