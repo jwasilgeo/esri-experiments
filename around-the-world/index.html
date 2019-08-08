@@ -13,10 +13,22 @@
   <style>
     html,
     body,
-    .esri-view {
+    .view-container {
       padding: 0;
       margin: 0;
       height: 100%;
+      width: 100%;
+    }
+
+    body {
+      background:  rgba(148, 187, 233, 1);
+      background: radial-gradient(circle,  rgba(238, 174, 202, 1) 0%,  rgba(148, 187, 233, 1) 100%);
+    }
+
+    .view-container {
+      position: absolute;
+      top: 0;
+      left: 0;
     }
 
     .rotate-control {
@@ -84,7 +96,7 @@
       opacity: 0;
       display: none;
       transition: opacity 0.5s ease-in;
-      margin-bottom: 14px;
+      margin-bottom: 5px;
     }
 
     .antipode-info a {
@@ -133,45 +145,32 @@
 </head>
 
 <body>
-  <div id="viewDiv">
+  <div id="mapViewDiv" class="view-container"></div>
+  <div id="sceneViewDiv" class="view-container"></div>
 
-    <div id="rotateControl" class="rotate-control esri-widget">
-      <div id="dragdealerSlider" class="dragdealer">
-        <div class="handle esri-button esri-widget-button esri-widget esri-interactive">
-          <span class="esri-icon-rotate"></span>
-        </div>
+  <div id="rotateControl" class="rotate-control esri-widget">
+    <div id="dragdealerSlider" class="dragdealer">
+      <div class="handle esri-button esri-widget-button esri-widget esri-interactive">
+        <span class="esri-icon-rotate"></span>
       </div>
     </div>
+  </div>
 
-    <div id="instructions" class="esri-widget esri-component info-text-box">
-      <ol style="padding-left: 25px;">
-        <li><span class="bold-font">Click</span> on the Earth to stand somewhere.</li>
-        <li><span class="bold-font">Move</span> the red slider to face any direction.</li>
-        <li><span class="bold-font">Follow</span> the line to see what lies beyond.</li>
-      </ol>
+  <div id="instructions" class="esri-widget esri-component info-text-box">
+    <ol style="padding-left: 25px; margin: 5px 0;">
+      <li><span class="bold-font">Click</span> on the globe to stand somewhere.</li>
+      <li><span class="bold-font">Move</span> the red slider to face any direction.</li>
+      <li><span class="bold-font">Follow</span> the line to see what lies beyond.</li>
+    </ol>
 
-      <div id="antipodeInfo" class="antipode-info">
-        The two red markers are <a class="bold-font" href="https://jwasilgeo.github.io/esri-experiments/antipodes/" target="_blank">antipodes</a>.
-      </div>
+    <div id="antipodeInfo" class="antipode-info">
+      The two red markers are <a class="bold-font" href="https://jwasilgeo.github.io/esri-experiments/antipodes/" target="_blank">antipodes</a>.
     </div>
+  </div>
 
-    <div id="switch2dView" class="esri-widget-button esri-widget esri-component switch-view">
-      <a href="./?is2dView=1" title="Switch to 2D map">
-        <span class="esri-icon esri-icon-maps"></span>
-      </a>
-    </div>
-
-    <div id="switch3dView" class="esri-widget-button esri-widget esri-component switch-view">
-      <a href="./" title="Switch to 3D globe">
-        <span class="esri-icon esri-icon-globe"></span>
-      </a>
-    </div>
-
-    <div id="credits" class="esri-widget esri-component credits">
-      <a class="bold-font" target="_blank" href="https://twitter.com/JWasilGeo">@JWasilGeo</a> |
-      <a class="bold-font" target="_blank" href="https://github.com/jwasilgeo/esri-experiments">Github</a>
-    </div>
-
+  <div id="credits" class="esri-widget esri-component credits">
+    <a class="bold-font" target="_blank" href="https://twitter.com/JWasilGeo">@JWasilGeo</a> |
+    <a class="bold-font" target="_blank" href="https://github.com/jwasilgeo/esri-experiments">Github</a>
   </div>
 
   <script src="https://unpkg.com/dragdealer@0.10.0"></script>
