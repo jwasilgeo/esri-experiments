@@ -6,7 +6,8 @@ module.exports = {
     'define': false,
     'require': false,
     'chroma': false,
-    'Dragdealer': false
+    'Dragdealer': false,
+    'LatLon': false
   },
   'extends': 'eslint:recommended',
   'parserOptions': {

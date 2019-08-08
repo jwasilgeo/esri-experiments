@@ -9,7 +9,7 @@
   <title>Take a ride on the ISS</title>
   <link rel="icon" href="favicon.ico" type="image/x-icon">
 
-  <link rel="stylesheet" href="//js.arcgis.com/4.6/esri/css/main.css">
+  <link rel="stylesheet" href="//js.arcgis.com/4.11/esri/css/main.css">
   <style>
     body {
       font-family: "Avenir Next W01", "Avenir Next W00", "Avenir Next", "Avenir", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
@@ -32,6 +32,7 @@
 
     #smallButtonsControl {
       display: flex;
+      box-shadow: none !important;
     }
 
     #photosNode {
@@ -80,7 +81,7 @@
       font-size: 22px;
     }
 
-    .error-message {
+    .info-message {
       display: none;
       flex-direction: column;
       align-items: center;
@@ -92,18 +93,6 @@
       font-size: 1.5em;
       font-weight: bold;
       cursor: default;
-    }
-
-    .error-background {
-      display: flex;
-      top: 20%;
-      left: 10%;
-      right: 10%;
-      height: 50%;
-      padding: 15px;
-      background-image: url(https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/iss-view/solar-terminator.gif);
-      background-size: 100%;
-      background-repeat: no-repeat;
     }
 
     /* slightly smaller basemap toggle */
@@ -127,11 +116,11 @@
       <div>
         <input id="hoursAdjustment" class="off" type="range" name="" min="-12" max="12" step="0.5" value="0" title="Adjust Daylight">
       </div>
-      <div id="daylightToggle" role="button" tabindex="0" class="off esri-widget-button esri-widget esri-component">
+      <div id="daylightToggle" role="button" tabindex="0" class="off esri-component esri-widget--button esri-widget esri-interactive">
         <span aria-hidden="true" class="esri-icon esri-icon-environment-settings bigger-icon" title="Adjust Daylight"></span>
         <span class="esri-icon-font-fallback-text">Daylight</span>
       </div>
-      <div id="astroPhotosToggle" role="button" tabindex="0" class="off esri-widget-button esri-widget esri-component">
+      <div id="astroPhotosToggle" role="button" tabindex="0" class="off esri-component esri-widget--button esri-widget esri-interactive">
         <span aria-hidden="true" class="esri-icon esri-icon-media bigger-icon" title="Astronaut Photos"></span>
         <span class="esri-icon-font-fallback-text">Astronaut Photos</span>
       </div>
@@ -150,11 +139,11 @@
       </div>
     </div>
 
-    <div id="errorMessageNode" class="error-message"></div>
+    <div id="infoMessageNode" class="info-message"></div>
   </div>
 
-  <script src="//js.arcgis.com/4.6/"></script>
-  <script src="//unpkg.com/geodesy/latlon-spherical"></script>
+  <script src="//js.arcgis.com/4.11/"></script>
+  <script src="//unpkg.com/geodesy@1.1.3/latlon-spherical"></script>
   <script src="script.js"></script>
 </body>
 

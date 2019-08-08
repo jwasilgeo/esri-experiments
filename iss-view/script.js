@@ -2,7 +2,6 @@ require([
   'dojo/request/script',
 
   'esri/Basemap',
-  'esri/config',
   'esri/geometry/Circle',
   // 'esri/Graphic',
   // 'esri/layers/GraphicsLayer',
@@ -17,22 +16,15 @@ require([
   'dojo/domReady!'
 ], function(
   dojoRequestScript,
-  Basemap, esriConfig, Circle, /*Graphic, GraphicsLayer,*/ WebTileLayer, Map, SimpleFillSymbol, QueryTask, Query, SceneView, BasemapToggle
+  Basemap, Circle, /*Graphic, GraphicsLayer,*/ WebTileLayer, Map, SimpleFillSymbol, QueryTask, Query, SceneView, BasemapToggle
 ) {
-  esriConfig.request.corsEnabledServers.push(
-    'stamen-tiles-a.a.ssl.fastly.net',
-    'stamen-tiles-b.a.ssl.fastly.net',
-    'stamen-tiles-c.a.ssl.fastly.net',
-    'stamen-tiles-d.a.ssl.fastly.net'
-  );
-
   var previousCoordinates;
 
   var astroPhotosToggle = document.getElementById('astroPhotosToggle');
   var photosParentNode = document.getElementById('photosParentNode');
   var photosNode = document.getElementById('photosNode');
   var creditsNode = document.getElementById('creditsNode');
-  var errorMessageNode = document.getElementById('errorMessageNode');
+  var infoMessageNode = document.getElementById('infoMessageNode');
 
   var issLocationUrl = 'http://api.open-notify.org/iss-now.json';
 
@@ -40,14 +32,15 @@ require([
   var updateDelay = 30000;
   var cameraViewChangeDuration = 30000;
 
-  var queryTaskExecute;
+  var queryTaskExecute = null;
 
   var map = new Map({
     basemap: 'satellite',
     ground: 'world-elevation'
   });
-    // var graphicsLayer = new GraphicsLayer();
-    // map.add(graphicsLayer);
+
+  // var graphicsLayer = new GraphicsLayer();
+  // map.add(graphicsLayer);
 
   var view = new SceneView({
     container: 'viewNode',
@@ -77,16 +70,12 @@ require([
   creditsNode.style.display = 'block';
 
   view.when(function(view) {
-    if (checkWebGLSupport()) {
-      startupMappingComponents(view);
-    }
-  }, function() {
-    checkWebGLSupport();
+    startupMappingComponents(view);
   });
 
   function startupMappingComponents(view) {
-    errorMessageNode.innerHTML = 'We\'re looking around for the space station. Hold on!';
-    errorMessageNode.style.display = 'flex';
+    infoMessageNode.innerHTML = 'We\'re looking around for the space station. Hold on!';
+    infoMessageNode.style.display = 'flex';
 
     establishIssLocation();
 
@@ -94,16 +83,6 @@ require([
     addDaylightToggle(view);
     addAstroPhotosToggle(view);
     addCustomBasemap(view);
-  }
-
-  function checkWebGLSupport() {
-    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|Opera Mini|IEMobile/i.test(navigator.userAgent)) {
-      errorMessageNode.innerHTML = 'You\'ll need a device/browser that supports WebGL. This must be awkward for you. Here\'s a gif instead.';
-      errorMessageNode.setAttribute('class', 'error-message error-background');
-      return false;
-    } else {
-      return true;
-    }
   }
 
   function addAstroPhotosToggle(view) {
@@ -188,8 +167,8 @@ require([
         };
         setTimeout(establishIssLocation, 750);
       } else {
-        errorMessageNode.innerHTML = '';
-        errorMessageNode.style.display = 'none';
+        infoMessageNode.innerHTML = '';
+        infoMessageNode.style.display = 'none';
 
         updateCameraPosition({
           latitude: res.iss_position.latitude,
@@ -207,12 +186,12 @@ require([
 
   function establishIssLocationError(err) {
     console.error(err);
-    errorMessageNode.innerHTML = 'We had trouble finding out where the space station is right now. Please try later!';
-    errorMessageNode.style.display = 'flex';
+    infoMessageNode.innerHTML = 'We had trouble finding out where the space station is right now. Please try later.';
+    infoMessageNode.style.display = 'flex';
 
     setTimeout(function() {
-      errorMessageNode.innerHTML = '';
-      errorMessageNode.style.display = 'none';
+      infoMessageNode.innerHTML = '';
+      infoMessageNode.style.display = 'none';
 
       previousCoordinates = {
         latitude: 0,
@@ -236,14 +215,14 @@ require([
         (Number(previousCoordinates.latitude).toFixed(3) !== view.camera.position.latitude.toFixed(3)) ||
           (Number(previousCoordinates.longitude).toFixed(3) !== view.camera.position.longitude.toFixed(3))
       ) {
-        errorMessageNode.innerHTML = 'Get ready. You\'re going to get moved.';
-        errorMessageNode.style.display = 'flex';
+        infoMessageNode.innerHTML = 'Get ready. You\'re going to get moved.';
+        infoMessageNode.style.display = 'flex';
       }
 
       // delay the next position if the user got off track to display a warning message
       // setTimeout(function() {
-      errorMessageNode.innerHTML = '';
-      errorMessageNode.style.display = 'none';
+      infoMessageNode.innerHTML = '';
+      infoMessageNode.style.display = 'none';
 
       updateCameraPosition({
         latitude: res.iss_position.latitude,
@@ -261,13 +240,13 @@ require([
 
   function getCurrentIssLocationError(err) {
     console.error(err);
-    errorMessageNode.innerHTML =
+    infoMessageNode.innerHTML =
         '<div>It seems that we\'ve misplaced the space station.</div>' +
         '<div>We\'ll try to look again in a minute or two.</div>' +
         '<div>Go click on something else.</div>';
-    errorMessageNode.style.display = 'flex';
+    infoMessageNode.style.display = 'flex';
     setTimeout(function() {
-      errorMessageNode.style.display = 'none';
+      infoMessageNode.style.display = 'none';
     }, 15000);
     setTimeout(getCurrentIssLocation, 60000);
   }
@@ -330,11 +309,13 @@ require([
     // if (queryTaskExecute && !queryTaskExecute.isResolved()) {
     if (queryTaskExecute && !queryTaskExecute.isFulfilled()) {
       queryTaskExecute.cancel();
+      queryTaskExecute = null;
     }
 
     queryTaskExecute = queryTask.execute(query);
 
     queryTaskExecute.then(function(results) {
+      queryTaskExecute = null;
 
       while (photosNode.hasChildNodes()) {
         photosNode.removeChild(photosNode.firstChild);
