@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>JSAPI 4.x Animated FeatureLayer Renderer</title>
+  <style>
+    html,
+    body,
+    #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+  </style>
+
+  <link rel="stylesheet" href="https://js.arcgis.com/4.14/esri/themes/light/main.css" />
+</head>
+
+<body>
+  <div id="viewDiv"></div>
+
+  <script src="https://unpkg.com/animejs@3.1.0/lib/anime.min.js"></script>
+  <script src="https://js.arcgis.com/4.14/"></script>
+
+  <script>
+    var view,
+      featureLayerOriginal,
+      featureLayerAnimated;
+
+    require([
+      "esri/Map",
+      "esri/views/MapView",
+      "esri/layers/FeatureLayer"
+    ], function (
+      Map,
+      MapView,
+      FeatureLayer
+    ) {
+      view = new MapView({
+        container: "viewDiv",
+        map: new Map({
+          basemap: "dark-gray-vector"
+        }),
+        zoom: 4,
+        center: [172, -42] // longitude, latitude
+      });
+
+      // featureLayerOriginal = new FeatureLayer({
+      //   url: "https://sampleserver6.arcgisonline.com/arcgis/rest/services/Earthquakes_Since1970/MapServer/0"
+      // });
+
+      featureLayerAnimated = new FeatureLayer({
+        url: "https://sampleserver6.arcgisonline.com/arcgis/rest/services/Earthquakes_Since1970/MapServer/0",
+        renderer: {
+          type: "simple",
+          symbol: {
+            type: "simple-marker",
+            size: 6,
+            color: "black",
+            outline: {
+              width: 1,
+              color: "steelblue"
+            }
+          }
+        }
+      });
+
+      // view.map.layers.add(featureLayerOriginal);
+
+      view.map.layers.add(featureLayerAnimated);
+
+      view
+        .whenLayerView(featureLayerAnimated)
+        .then(function() {
+          var clonedRenderer = featureLayerAnimated.renderer.clone();
+
+          var animation = anime({
+            targets: clonedRenderer.symbol,
+            size: 20,
+            direction: 'alternate',
+            loop: true,
+            easing: 'easeInOutSine',
+            duration: 3000,
+            update: function () {
+              // console.log(clonedRenderer.symbol.size);
+              featureLayerAnimated.renderer = clonedRenderer;
+            }
+          });
+      });
+
+    });
+  </script>
+</body>
+
+</html>
