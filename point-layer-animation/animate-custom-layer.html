@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>JSAPI 4.x custom layer view with Anime.js</title>
+
+  <link rel="stylesheet" href="https://js.arcgis.com/4.14/esri/themes/light/main.css" />
+
+  <style>
+    html,
+    body,
+    #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+  </style>
+
+  <script src="https://unpkg.com/animejs@3.1.0/lib/anime.min.js"></script>
+  <script src="https://js.arcgis.com/4.14/"></script>
+</head>
+
+<body>
+  <div id="viewDiv"></div>
+
+  <script>
+    require([
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/views/2d/layers/BaseLayerView2D",
+        "esri/layers/GraphicsLayer",
+        "esri/geometry/support/webMercatorUtils",
+        "esri/Graphic"
+      ], function (
+        Map,
+        MapView,
+        BaseLayerView2D,
+        GraphicsLayer,
+        webMercatorUtils,
+        Graphic
+      ) {
+        // PART A: custom extension of BaseLayerView2D
+        const CustomLayerView2D = BaseLayerView2D.createSubclass({
+          // constructor
+          // attach
+          // render
+          // detach
+
+          // implementation of render method in BaseLayerView2D
+          // https://developers.arcgis.com/javascript/latest/api-reference/esri-views-2d-layers-BaseLayerView2D.html#render
+          render: function (renderParameters) {
+            // state is a ViewState instance
+            // https://developers.arcgis.com/javascript/latest/api-reference/esri-views-2d-ViewState.html
+            const state = renderParameters.state;
+
+            // ctx is sometimes convention for canvas 2d context
+            const ctx = renderParameters.context;
+
+            // get current radius value from the layer instance
+            // we use Anime.js to help change and transition this number value
+            const radius = this.layer.radius;
+
+            // note that it is not necessary to clear canvas context by hand because
+            // BaseLayerView2D.render() takes care of this for us in this example
+            // const width = state.size[0];
+            // const height = state.size[1];
+            // ctx.clearRect(0, 0, width, height);
+
+            // TODO: allow fillStyle, lineWidth, and strokeStyle to be defined when creating
+            // an instance of CustomLayer instead of hard-coding within this method
+
+            // assumes these are all graphics with point geometies
+            this.layer.graphics.forEach(function (graphic) {
+              const mapCoords = [graphic.geometry.x, graphic.geometry.y];
+
+              // screenCoords array is modified in-place by state.toScreen()
+              const screenCoords = [0, 0];
+              state.toScreen(screenCoords, mapCoords[0], mapCoords[1]);
+
+              ctx.beginPath();
+              ctx.fillStyle = "rgba(200, 0, 0, 0.33)";
+              ctx.lineWidth = 3;
+              ctx.strokeStyle = "rgba(200, 0, 0, 1)";
+              ctx.arc(
+                screenCoords[0],
+                screenCoords[1],
+                radius,
+                0,
+                2 * Math.PI,
+                false
+              );
+              ctx.fill();
+              ctx.stroke();
+              ctx.closePath();
+            });
+          }
+        });
+
+        // PART B: custom extension of GraphicsLayer
+        // this relies on the CustomLayerView2D defined in PART A above
+        const CustomLayer = GraphicsLayer.createSubclass({
+          constructor: function () {
+            // default properites if none provided
+            this.radius = 10;
+            this.radiusChange = +20;
+          },
+
+          createLayerView: function (view) {
+            if (view.type === "2d") {
+              return new CustomLayerView2D({
+                view: view,
+                layer: this
+              });
+            }
+          }
+        });
+
+        // create an initial point graphic to add to the CustomLayer
+        const initialGraphic = new Graphic({
+          geometry: webMercatorUtils.geographicToWebMercator({
+            type: "point",
+            longitude: 20,
+            latitude: 50
+          })
+        });
+
+        // create an instance of CustomLayer
+        // with some optional properties and the initial graphic
+        const customLayerInstance = new CustomLayer({
+          radius: 20,
+          radiusChange: +30,
+          graphics: [initialGraphic]
+          // opacity: 0.25 // other properties of GraphicsLayer will work correctly
+        });
+
+        // add the map to the mapview
+        // add the custom layer to the map
+        const view = new MapView({
+          container: "viewDiv",
+          map: new Map({
+            basemap: "gray-vector",
+            layers: [customLayerInstance]
+          }),
+          zoom: 7,
+          center: [20, 50]
+        });
+
+        // clicking on the mapview will add a new point graphic to the custom layer
+        view.on("click", function (e) {
+          customLayerInstance.graphics.add(new Graphic({ geometry: e.mapPoint }));
+        });
+
+        // TODO: get Anime.js and the transition logic wrapped up in the custom layer/layerview
+
+        // when the layerview of the custom layer is ready and available,
+        // use Anime.js to transition and change the current radius value
+        // and request a fresh render
+        view.whenLayerView(customLayerInstance).then(function (layerView) {
+          const otherRadiusValue =
+            customLayerInstance.radius + customLayerInstance.radiusChange;
+
+          anime({
+            targets: [layerView.layer],
+            radius: otherRadiusValue,
+            direction: "alternate",
+            loop: true,
+            easing: "easeInOutSine",
+            duration: 2000,
+            update: function () {
+              layerView.requestRender();
+            }
+          });
+        });
+      });
+  </script>
+</body>
+
+</html>
