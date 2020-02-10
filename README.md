@@ -33,3 +33,9 @@ Explore the Earth at night as seen by Suomi NPP VIIRS. Light emissions are used 
 Take a ride on the International Space Station and explore NASA astronaut photography.
 
 [![solar-terminator](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/iss-view/solar-terminator.gif)](https://jwasilgeo.github.io/esri-experiments/iss-view)
+
+## [point-layer-animation](https://jwasilgeo.github.io/esri-experiments/point-layer-animation/animate-custom-layer.html)
+
+Find out how to build your own 2D layer with the [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API) and animate it the help of [Anime.js](https://animejs.com/).
+
+[![screenshot](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/point-layer-animation/point-layer-animation.gif)](https://jwasilgeo.github.io/esri-experiments/point-layer-animation/animate-custom-layer.html)
