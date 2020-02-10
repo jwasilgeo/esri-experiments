@@ -1,6 +1,8 @@
 # esri-experiments
 
-Web mapping experiments using the [ArcGIS API for JavaScript](https://js.arcgis.com). Also check out my [LeafletJS experiments](https://github.com/jwasilgeo/leaflet-experiments).
+Web mapping experiments using the [ArcGIS API for JavaScript](https://js.arcgis.com).
+
+Also check out my [LeafletJS experiments](https://github.com/jwasilgeo/leaflet-experiments) and other data visualizations on [CodePen](https://codepen.io/jwasilgeo/).
 
 ## [antipodes](https://jwasilgeo.github.io/esri-experiments/antipodes)
 
@@ -10,13 +12,13 @@ Get to know the opposite side of the Earth in 3D.
 
 ## [antipodes-2d](https://jwasilgeo.github.io/esri-experiments/antipodes-2d)
 
-Get to know the opposite side of the Earth in 2D. Includes several choices in color schemes for colorblind support.
+Get to know the opposite side of the Earth in 2D. Includes several color scheme choices for colorblind support.
 
 [![antipodes-2d](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/antipodes-2d/screenshot.png)](https://jwasilgeo.github.io/esri-experiments/antipodes-2d)
 
 ## [around-the-world](https://jwasilgeo.github.io/esri-experiments/around-the-world)
 
-Find out what lies across the ocean and beyond by traveling around the Earth. 3D in a desktop browser, 2D on a mobile device.
+Find out what lies across the ocean and beyond by traveling around the Earth, and along the way learn how geodesic lines appear on globes vs. 2D web mercator maps.
 
 [![screenshot](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/around-the-world/screenshot.png)](https://jwasilgeo.github.io/esri-experiments/around-the-world)
 
