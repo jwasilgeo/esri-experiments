@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>JSAPI 4.x Custom BaseLayerView2D</title>
+
+  <link rel="stylesheet" href="https://js.arcgis.com/4.14/esri/themes/light/main.css" />
+
+  <style>
+    html,
+    body,
+    #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="viewDiv"></div>
+
+  <script src="https://js.arcgis.com/4.14/"></script>
+
+  <script>
+    require([
+      "esri/Map",
+      "esri/views/MapView",
+      "esri/views/2d/layers/BaseLayerView2D",
+      "esri/layers/GraphicsLayer",
+      "esri/geometry/support/webMercatorUtils",
+      "esri/Graphic"
+    ], function (
+      Map,
+      MapView,
+      BaseLayerView2D,
+      GraphicsLayer,
+      webMercatorUtils,
+      Graphic
+    ) {
+      // PART A: custom extension of BaseLayerView2D
+      const CustomLayerView2D = BaseLayerView2D.createSubclass({
+        // constructor
+        // attach
+        // render
+        // detach
+
+        // implementation of render method in BaseLayerView2D
+        // https://developers.arcgis.com/javascript/latest/api-reference/esri-views-2d-layers-BaseLayerView2D.html#render
+        render: function (renderParameters) {
+          // state is a ViewState instance
+          // https://developers.arcgis.com/javascript/latest/api-reference/esri-views-2d-ViewState.html
+          const state = renderParameters.state;
+
+          // ctx is sometimes the convention for canvas 2d rendering context
+          const ctx = renderParameters.context;
+
+          // NOTE: it is not necessary to clear ctx manually because
+          // BaseLayerView2D.render() takes care of it
+          // const width = state.size[0];
+          // const height = state.size[1];
+          // ctx.clearRect(0, 0, width, height);
+
+          // ctx styles and radius value are stored in the layer's canvasPointSymbol property
+          const canvasPointSymbol = this.layer.canvasPointSymbol;
+
+          // assumes these are all graphics with point geometies
+          this.layer.graphics.forEach(function (graphic) {
+            // convert from spatial coordinates to screen coordinates
+            const mapCoords = [graphic.geometry.x, graphic.geometry.y];
+
+            // screenCoords array is modified in-place by state.toScreen()
+            const screenCoords = [0, 0];
+            state.toScreen(screenCoords, mapCoords[0], mapCoords[1]);
+
+            // use canvas 2d rendering context to draw shapes
+            ctx.beginPath();
+            ctx.fillStyle = canvasPointSymbol.fillStyle;
+            ctx.lineWidth = canvasPointSymbol.lineWidth;
+            ctx.strokeStyle = canvasPointSymbol.strokeStyle;
+            ctx.arc(
+              screenCoords[0], // x screen coordinate
+              screenCoords[1], // y screen coordinate
+              canvasPointSymbol.radius, // radius
+              0, // start angle
+              2 * Math.PI // end angle
+            );
+            ctx.fill();
+            ctx.stroke();
+            ctx.closePath();
+          });
+        }
+      });
+
+      // PART B: custom extension of GraphicsLayer,
+      // which relies on the CustomLayerView2D defined in PART A above
+      // NOTE: by extending from the GraphicsLayer module instead of the Layer module,
+      // we get built-in and familiar functionality for adding/removing graphics
+      const CustomLayer = GraphicsLayer.createSubclass({
+        constructor: function () {
+          // default properites if none provided
+
+          // make our own canvas "symbol" for the entire layer
+          // it will be used by the canvas 2d rendering context drawing methods
+          this.canvasPointSymbol = {
+            fillStyle: "rgba(200, 0, 0, 0.33)",
+            lineWidth: 3,
+            strokeStyle: "rgba(200, 0, 0, 1)",
+            radius: 20
+          };
+        },
+
+        createLayerView: function (view) {
+          if (view.type === "2d") {
+            return new CustomLayerView2D({
+              view: view,
+              layer: this
+            });
+          }
+        }
+      });
+
+      // create an initial point graphic to add to an instance of CustomLayer
+      const initialGraphic = new Graphic({
+        geometry: webMercatorUtils.geographicToWebMercator({
+          type: "point",
+          longitude: 20,
+          latitude: 50
+        })
+      });
+
+      // create an instance of CustomLayer
+      // with an initial graphic
+      const customLayerInstance = new CustomLayer({
+        graphics: [initialGraphic]
+      });
+
+      // add the map to the mapview
+      // add the custom layer instance to the map
+      const view = new MapView({
+        container: "viewDiv",
+        map: new Map({
+          basemap: "gray-vector",
+          layers: [customLayerInstance]
+        }),
+        zoom: 7,
+        center: [20, 50]
+      });
+
+      // clicking on the mapview will add a new point graphic to the custom layer instance
+      view.on("click", function (e) {
+        customLayerInstance.graphics.add(new Graphic({ geometry: e.mapPoint }));
+      });
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>JSAPI 4.x simple GraphicsLayer</title>
+
+  <link rel="stylesheet" href="https://js.arcgis.com/4.14/esri/themes/light/main.css" />
+
+  <style>
+    html,
+    body,
+    #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="viewDiv"></div>
+
+  <script src="https://js.arcgis.com/4.14/"></script>
+
+  <script>
+    require([
+      "esri/Map",
+      "esri/views/MapView",
+      "esri/layers/GraphicsLayer",
+      "esri/Graphic"
+    ], function (
+      EsriMap,
+      MapView,
+      GraphicsLayer,
+      Graphic
+    ) {
+      // create a simple marker symbol to use for all point graphics
+      const pointSymbol = {
+        type: "simple-marker", // autocasts as SimpleMarkerSymbol
+        style: "circle",
+        color: "rgba(200, 0, 0, 0.33)",
+        size: "40px",
+        outline: {  // autocasts as SimpleLineSymbol
+          color: "rgba(200, 0, 0, 1)",
+          width: "3px"
+        }
+      };
+
+      // create an initial point graphic to add to an instance of GraphicsLayer
+      const initialGraphic = new Graphic({
+        geometry: { // autocasts as Point geometry
+          type: "point",
+          longitude: 20,
+          latitude: 50
+        },
+        symbol: pointSymbol
+      });
+
+      // create an instance of GraphicsLayer
+      const graphicsLayerInstance = new GraphicsLayer({
+        graphics: [initialGraphic]
+      });
+
+      // add the map to the mapview
+      // add the graphics layer instance to the map
+      const view = new MapView({
+        container: "viewDiv",
+        map: new EsriMap({
+          basemap: "gray-vector",
+          layers: [graphicsLayerInstance]
+        }),
+        zoom: 7,
+        center: [20, 50]
+      });
+
+      // clicking on the mapview will add a new point graphic to the graphics layer instance
+      view.on("click", function (e) {
+        graphicsLayerInstance.graphics.add(new Graphic({
+          geometry: e.mapPoint,
+          symbol: pointSymbol
+        }));
+      });
+    });
+  </script>
+</body>
+
+</html>
