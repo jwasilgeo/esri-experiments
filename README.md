@@ -34,7 +34,7 @@ Find out what lies across the ocean and beyond by traveling around the Earth, an
 
 Find out how to build your own 2D layer with the [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API) and animate it the help of [Anime.js](https://animejs.com/).
 
-[![screenshot](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/custom-point-layer/custom-point-layer.gif)](https://jwasilgeo.github.io/esri-experiments/custom-point-layer/3-animate-custom-layer.html)
+[![screenshot](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/custom-point-layer/point-layer-animation.gif)](https://jwasilgeo.github.io/esri-experiments/custom-point-layer/3-animate-custom-layer.html)
 
 ## [iss-view](https://jwasilgeo.github.io/esri-experiments/iss-view)
 
