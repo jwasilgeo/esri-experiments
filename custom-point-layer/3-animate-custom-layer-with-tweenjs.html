@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>JSAPI 4.x Custom BaseLayerView2D</title>
+  <title>JSAPI 4.x Custom BaseLayerView2D with Tween.js</title>
 
   <link rel="stylesheet" href="https://js.arcgis.com/4.14/esri/themes/light/main.css" />
 
@@ -22,6 +22,9 @@
 
 <body>
   <div id="viewDiv"></div>
+
+  <!-- load Tween.js https://github.com/tweenjs/tween.js -->
+  <script src="https://unpkg.com/@tweenjs/tween.js@18.5.0/dist/tween.umd.js"></script>
 
   <script src="https://js.arcgis.com/4.14/"></script>
 
@@ -48,6 +51,20 @@
         // render
         // detach
 
+        // implementation of attach method in BaseLayerView2D
+        attach: function () {
+          // set up the Tween.js helper to manage the changes to the radius
+          // (ideally we could tear this down in the detach method)
+          const otherRadiusValue = this.layer.radius + this.layer.radiusChange;
+
+          this.animationHelper = new TWEEN.Tween(this.layer)
+            .to({ radius: otherRadiusValue }, 2000)
+            .easing(TWEEN.Easing.Sinusoidal.InOut)
+            .repeat(Infinity)
+            .yoyo(true)
+            .start();
+        },
+
         // implementation of render method in BaseLayerView2D
         // https://developers.arcgis.com/javascript/latest/api-reference/esri-views-2d-layers-BaseLayerView2D.html#render
         render: function (renderParameters) {
@@ -55,11 +72,18 @@
           // https://developers.arcgis.com/javascript/latest/api-reference/esri-views-2d-ViewState.html
           const state = renderParameters.state;
 
-          // ctx is sometimes the convention for canvas 2d rendering context
+          // ctx is sometimes convention for canvas 2d rendering context
           const ctx = renderParameters.context;
 
           // radius value is stored as a layer property
+          // we use Tween.js to help change and transition the radius number value
           const radius = this.layer.radius;
+
+          // NOTE: it is not necessary to clear ctx manually because
+          // BaseLayerView2D.render() takes care of it
+          // const width = state.size[0];
+          // const height = state.size[1];
+          // ctx.clearRect(0, 0, width, height);
 
           // assumes these are all graphics with point geometies
           this.layer.graphics.forEach(function (graphic) {
@@ -86,18 +110,26 @@
             ctx.stroke();
             ctx.closePath();
           });
+
+          // manually transition the radius value with the help of Tween.js
+          // and schedule another render of the BaseLayerView2D
+          if (this.animationHelper) {
+            this.animationHelper.update(performance.now());
+            this.requestRender();
+          }
         }
       });
 
-      // PART B: custom extension of GraphicsLayer,
-      // which relies on the CustomLayerView2D defined in PART A above
+      // PART B: custom extension of GraphicsLayer
+      // this relies on the CustomLayerView2D defined in PART A above
       // NOTE: by extending from the GraphicsLayer module instead of the Layer module,
       // we get built-in and familiar functionality for adding/removing graphics
       const CustomLayer = GraphicsLayer.createSubclass({
         constructor: function () {
           // we can establish default properites here for the layer
           // they can be changed when constructing an instance of the layer
-          this.radius = 20;
+          this.radius = 10;
+          this.radiusChange = 20;
         },
 
         createLayerView: function (view) {
@@ -120,8 +152,10 @@
       });
 
       // create an instance of CustomLayer
-      // with an initial graphic
+      // with some optional properties and an initial graphic
       const customLayerInstance = new CustomLayer({
+        radius: 20,
+        radiusChange: 30,
         graphics: [initialGraphic]
       });
 
