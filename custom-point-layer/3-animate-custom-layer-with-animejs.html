@@ -57,7 +57,7 @@
           // (ideally we could tear this down in the detach method)
           const otherRadiusValue = this.layer.radius + this.layer.radiusChange;
 
-          this.animation = anime({
+          this.animationHelper = anime({
             targets: [this.layer],
             radius: otherRadiusValue,
             direction: "alternate",
@@ -120,8 +120,8 @@
 
           // manually transition the radius value with the help of Anime.js
           // and schedule another render of the BaseLayerView2D
-          if (this.animation) {
-            this.animation.tick(performance.now());
+          if (this.animationHelper) {
+            this.animationHelper.tick(performance.now());
             this.requestRender();
           }
         }
