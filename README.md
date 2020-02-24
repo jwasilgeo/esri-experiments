@@ -40,6 +40,18 @@ Find out how to build your own 2D layer with the [Canvas API](https://developer.
 
 [![screenshot](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/custom-point-layer/point-layer-animation.gif)](https://jwasilgeo.github.io/esri-experiments/custom-point-layer/3-animate-custom-layer-with-animejs.html)
 
+## custom-tile-layer
+
+Find out how to build your own tiled layer in either 2D or 3D with the [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API).
+
+[Example showing level, row, and column info](https://jwasilgeo.github.io/esri-experiments/custom-tile-layer/custom-tile-layer.html)
+
+[Example with kittens! 😻 🐈](https://jwasilgeo.github.io/esri-experiments/custom-tile-layer/custom-kittens-layer.html)
+
+[![screenshot](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/custom-tile-layer/text-screenshot.png)](https://jwasilgeo.github.io/esri-experiments/custom-tile-layer/custom-tile-layer.html)
+
+[![screenshot](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/custom-tile-layer/cats-screenshot.png)](https://jwasilgeo.github.io/esri-experiments/custom-tile-layer/custom-kittens-layer.html)
+
 ## [iss-view](https://jwasilgeo.github.io/esri-experiments/iss-view)
 
 Take a ride on the International Space Station and explore NASA astronaut photography.

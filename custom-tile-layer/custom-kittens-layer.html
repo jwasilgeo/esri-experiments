@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>JSAPI 4.x Custom BaseTileLayer</title>
+
+  <link rel="stylesheet" href="https://js.arcgis.com/4.15/esri/themes/light/main.css" />
+
+  <style>
+    html,
+    body,
+    .esri-view {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+
+    body {
+      display: grid;
+      grid-template-columns: 1fr 30px 1fr;
+      grid-template-rows: 100%;
+    }
+
+    #gutter {
+      color: white;
+      text-align: center;
+      font-family: sans-serif;
+    }
+
+    #gutter div:first-of-type {
+      transform: rotate(90deg) translateX(33vh) translateY(5px);
+    }
+
+    #gutter div:last-of-type {
+      transform: rotate(-90deg) translateX(-66vh) translateY(5px);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="viewDiv2D"></div>
+  <div id="gutter" style="background-color: black;">
+    <div>MapView</div>
+    <div>SceneView</div>
+  </div>
+  <div id="viewDiv3D"></div>
+
+  <script src="https://js.arcgis.com/4.15/"></script>
+
+  <script>
+    require([
+      "esri/Map",
+      "esri/views/MapView",
+      "esri/views/SceneView",
+      "esri/layers/BaseTileLayer",
+      "esri/request"
+    ], function (
+      EsriMap,
+      MapView,
+      SceneView,
+      BaseTileLayer,
+      esriRequest
+    ) {
+      var CustomLayer = BaseTileLayer.createSubclass({
+        getTileUrl: function (/* level, row, col */) {
+          var i = Math.ceil(Math.random() * 16);
+          return "https://placekitten.com/256/256?image=" + i;
+        },
+
+        // fetch tiles visible in the view
+        fetchTile: function (level, row, col, options) {
+          var url = this.getTileUrl();
+
+          return esriRequest(url, {
+            responseType: "image",
+            signal: options && options.signal
+          }).then(function(response) {
+            // when esriRequest resolves successfully,
+            // process the image that is returned
+            var image = response.data;
+            var width = this.tileInfo.size[0];
+            var height = this.tileInfo.size[0];
+
+            // create a canvas and draw the image data
+            var canvas = document.createElement("canvas");
+            var ctx = canvas.getContext("2d");
+            canvas.width = width;
+            canvas.height = height;
+
+            ctx.drawImage(image, 0, 0, width, height);
+
+            return canvas;
+          }.bind(this));
+        }
+      });
+
+      // create a new instance of the CustomLayer
+      // assign values for urlTemplate and maxElevation
+      var customLayer = new CustomLayer({
+        copyright: "<a href='https://placekitten.com/attribution.html'>PlaceKitten</a> and <a href='https://leafletjs.com/examples/extending/extending-2-layers.html'>a LeafletJS Tutorial</a>"
+      });
+
+      // create a new instance of Map and add custom layer instance
+      var map = new EsriMap({
+        basemap: "hybrid",
+        ground: "world-elevation",
+        layers: [customLayer]
+      });
+
+      // create a new instance of MapView
+      new MapView({
+        container: "viewDiv2D",
+        map: map,
+        center: [90.41, 27.4],
+        zoom: 6
+      });
+
+      new SceneView({
+        container: "viewDiv3D",
+        map: map,
+        center: [90.41, 27.4],
+        zoom: 6,
+      }).goTo({
+        tilt: 20
+      });
+    });
+  </script>
+</body>
+
+</html>

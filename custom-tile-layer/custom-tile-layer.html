@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>JSAPI 4.x Custom BaseTileLayer</title>
+
+  <link rel="stylesheet" href="https://js.arcgis.com/4.15/esri/themes/light/main.css" />
+
+  <style>
+    html,
+    body,
+    .esri-view {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+
+    body {
+      display: grid;
+      grid-template-columns: 1fr 30px 1fr;
+      grid-template-rows: 100%;
+    }
+
+    #gutter {
+      color: white;
+      text-align: center;
+      font-family: sans-serif;
+    }
+
+    #gutter div:first-of-type {
+      transform: rotate(90deg) translateX(33vh) translateY(5px);
+    }
+
+    #gutter div:last-of-type {
+      transform: rotate(-90deg) translateX(-66vh) translateY(5px);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="viewDiv2D"></div>
+  <div id="gutter" style="background-color: black;">
+    <div>MapView</div>
+    <div>SceneView</div>
+  </div>
+  <div id="viewDiv3D"></div>
+
+  <script src="https://js.arcgis.com/4.15/"></script>
+
+  <script>
+    require([
+      "esri/Map",
+      "esri/views/MapView",
+      "esri/views/SceneView",
+      "esri/layers/BaseTileLayer"
+    ], function (
+      EsriMap,
+      MapView,
+      SceneView,
+      BaseTileLayer
+    ) {
+      var CustomLayer = BaseTileLayer.createSubclass({
+        // fetch tiles visible in the view
+        fetchTile: function (level, row, col, options) {
+          // create a canvas to draw the processed image
+          var canvas = document.createElement("canvas");
+          var ctx = canvas.getContext("2d");
+          var width = this.tileInfo.size[0];
+          var height = this.tileInfo.size[1];
+
+          canvas.width = width;
+          canvas.height = height;
+
+          ctx.strokeStyle = "black";
+          ctx.strokeRect(0, 0, width, height)
+
+          ctx.font = "bold 18px sans-serif";
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = "#f30";
+
+          var textContent = `level ${level}, row ${row}, col ${col}`;
+
+          var textWidth = ctx.measureText(textContent).width;
+
+          ctx.strokeText(
+            textContent,
+            width / 2 - textWidth / 2,
+            height / 2
+          );
+
+          ctx.fillText(
+            textContent,
+            width / 2 - textWidth / 2,
+            height / 2
+          );
+
+          return Promise.resolve(canvas);
+        }
+      });
+
+      // create a new instance of the CustomLayer
+      // assign values for urlTemplate and maxElevation
+      var customLayer = new CustomLayer({
+        copyright: "<a href='https://twitter.com/JWasilGeo'>Jacob Wasilkowski</a>"
+      });
+
+      // create a new instance of Map and add custom layer instance
+      var map = new EsriMap({
+        basemap: "satellite",
+        ground: "world-elevation",
+        layers: [customLayer]
+      });
+
+      // create a new instance of MapView
+      new MapView({
+        container: "viewDiv2D",
+        map: map,
+        center: [90.41, 27.4],
+        zoom: 9
+      });
+
+      new SceneView({
+        container: "viewDiv3D",
+        map: map,
+        center: [90.41, 27.4],
+        zoom: 9,
+      }).goTo({
+        tilt: 30
+      });
+    });
+  </script>
+</body>
+
+</html>
