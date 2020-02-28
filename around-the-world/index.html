@@ -148,12 +148,17 @@
   <div id="mapViewDiv" class="view-container"></div>
   <div id="sceneViewDiv" class="view-container"></div>
 
-  <div id="rotateControl" class="rotate-control esri-widget">
+  <!-- <div id="rotateControl" class="rotate-control esri-widget">
     <div id="dragdealerSlider" class="dragdealer">
       <div class="handle esri-button esri-widget-button esri-widget esri-interactive">
         <span class="esri-icon-rotate"></span>
       </div>
     </div>
+  </div> -->
+
+  <div id="rotateControl" class="rotate-control esri-widget">
+    <canvas id="dragdealerSlider" width="300" height="300">
+    </canvas>
   </div>
 
   <div id="instructions" class="esri-widget esri-component info-text-box">
@@ -173,6 +178,7 @@
     <a class="bold-font" target="_blank" href="https://github.com/jwasilgeo/esri-experiments">Github</a>
   </div>
 
+  <script src="https://unpkg.com/@maslick/radiaslider@1.9.0/dist/slider-circular.min.js"></script>
   <script src="https://unpkg.com/dragdealer@0.10.0"></script>
   <script src="https://js.arcgis.com/4.14/"></script>
   <script src="script.js"></script>

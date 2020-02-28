@@ -16,7 +16,7 @@ require([
   'esri/views/SceneView',
 
   'esri/widgets/Locate'
-], function(
+], function (
   geodesicUtils, Point, Polyline, Graphic, GraphicsLayer, WebTileLayer, Map,
   ObjectSymbol3DLayer, PointSymbol3D, SimpleLineSymbol, SimpleMarkerSymbol,
   MapView, SceneView,
@@ -140,15 +140,15 @@ require([
 
   sceneView.ui.move('compass', 'top-left');
 
-  sceneView.when(function() {
+  sceneView.when(function () {
     mapView.center = sceneView.center;
     mapView.rotation = -sceneView.camera.heading;
 
-    sceneView.watch('center', function(newCenter) {
+    sceneView.watch('center', function (newCenter) {
       mapView.center = newCenter;
     });
 
-    sceneView.watch('camera.heading', function(newHeading) {
+    sceneView.watch('camera.heading', function (newHeading) {
       mapView.rotation = -newHeading;
     });
 
@@ -174,7 +174,7 @@ require([
 
     sceneView.ui.add(locateWidget, 'top-left');
 
-    locateWidget.on('locate', function(e) {
+    locateWidget.on('locate', function (e) {
       handleViewClick({
         mapPoint: {
           latitude: e.position.coords.latitude,
@@ -191,23 +191,57 @@ require([
 
     // establish conditional DOM properties based on the view width
     viewWidthChange(sceneView.widthBreakpoint);
-    sceneView.watch('widthBreakpoint', function(newValue) {
+    sceneView.watch('widthBreakpoint', function (newValue) {
       viewWidthChange(newValue);
     });
 
     // establish the rotate control drag widget
-    dragdealerElement = new Dragdealer('dragdealerSlider', {
-      x: 0.5,
-      slide: true,
-      loose: true,
-      animationCallback: function(x) {
-        // transform the inner handle icon as if it is rotating like a wheel along a track
-        var width = rotateControl.clientWidth,
-          // handleOuterNode.clientWidth should be 50px (:hover size) but on startup it is 40px (non-:hover size)
-          // this messes up the intiial state of the inner icon rotation
-          circumference = 50 * Math.PI,
-          rotateDeg = width / circumference * 360 * x;
-        handleInnerNode.style.transform = 'rotate(' + rotateDeg + 'deg)';
+    // dragdealerElement = new Dragdealer('dragdealerSlider', {
+    //   x: 0.5,
+    //   slide: true,
+    //   loose: true,
+    //   animationCallback: function (x) {
+    //     // transform the inner handle icon as if it is rotating like a wheel along a track
+    //     var width = rotateControl.clientWidth,
+    //       // handleOuterNode.clientWidth should be 50px (:hover size) but on startup it is 40px (non-:hover size)
+    //       // this messes up the intiial state of the inner icon rotation
+    //       circumference = 50 * Math.PI,
+    //       rotateDeg = width / circumference * 360 * x;
+    //     handleInnerNode.style.transform = 'rotate(' + rotateDeg + 'deg)';
+
+    //     // wrap geometries around the Earth if there is a clicked point
+    //     if (!clickedMapPoint) {
+    //       return;
+    //     }
+
+    //     var latitudeShift = (x - 0.5) * 180;
+    //     if (latitudeShift > 90) {
+    //       latitudeShift -= 180;
+    //     } else if (latitudeShift < -90) {
+    //       latitudeShift += 180;
+    //     }
+    //     wrapAround(clickedMapPoint, latitudeShift);
+    //   }
+    // });
+
+    dragdealerElement = new Slider({
+      canvasId: 'dragdealerSlider',
+      continuousMode: true,
+      x0: 150,
+      y0: 150,
+      readOnly: false
+    });
+    dragdealerElement.addSlider({
+      id: 1,
+      radius: 50,
+      // min: 90,
+      // max: -90,
+      step: 1,
+      color: '#104b63',
+      changed: function (e) {
+        var x = e.value;
+
+        console.log(e)
 
         // wrap geometries around the Earth if there is a clicked point
         if (!clickedMapPoint) {
@@ -220,7 +254,7 @@ require([
         } else if (latitudeShift < -90) {
           latitudeShift += 180;
         }
-        wrapAround(clickedMapPoint, latitudeShift);
+        wrapAround(clickedMapPoint, e.value);
       }
     });
 
@@ -243,7 +277,7 @@ require([
       return;
     }
 
-    latitudeShift = latitudeShift || (dragdealerElement.getValue()[0] - 0.5) * 180;
+    latitudeShift = latitudeShift || dragdealerElement.sliders[1].normalizedValue * 180;
 
     // create a simple line at the clicked point and wrap it around the Earth
     var wrapAroundLine = new Polyline({
@@ -272,7 +306,7 @@ require([
     if (antipodeInfoNode.style.opacity !== '1') {
       // with css transition this will fade in
       antipodeInfoNode.style.display = 'block';
-      setTimeout(function() {
+      setTimeout(function () {
         antipodeInfoNode.style.opacity = '1';
       }, 300);
     }
@@ -292,7 +326,7 @@ require([
       symbol: lineSymbol3D
     }));
 
-    wrapAroundLine.paths[0].forEach(function(vertex, idx) {
+    wrapAroundLine.paths[0].forEach(function (vertex, idx) {
       if (idx === 0 || idx === 2) {
         analysisGraphicsLayer2D.add(new Graphic({
           geometry: new Point(vertex[0], vertex[1]),
