@@ -50,11 +50,15 @@ Find out what lies across the ocean and beyond by traveling around the Earth, an
 
 Find out how to build your own 2D layer with the [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API) and animate it the help of [Anime.js](https://animejs.com/), or alternatively with [Tween.js](https://github.com/tweenjs/tween.js).
 
-[Example with Anime.js](https://jwasilgeo.github.io/esri-experiments/custom-point-layer/3-animate-custom-layer-with-animejs.html)
+[Radius animation example with Anime.js](https://jwasilgeo.github.io/esri-experiments/custom-point-layer/3-animate-custom-layer-with-animejs.html)
 
-[Example with Tween.js](https://jwasilgeo.github.io/esri-experiments/custom-point-layer/3-animate-custom-layer-with-tweenjs.html)
+[Radius animation example with Tween.js](https://jwasilgeo.github.io/esri-experiments/custom-point-layer/3-animate-custom-layer-with-tweenjs.html)
+
+[Pie/donuts charts example with D3js](https://jwasilgeo.github.io/esri-experiments/custom-point-layer/d3-pies-layer.html)
 
 [![screenshot](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/custom-point-layer/point-layer-animation.gif)](https://jwasilgeo.github.io/esri-experiments/custom-point-layer/3-animate-custom-layer-with-animejs.html)
+
+[![screenshot-pies](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/custom-point-layer/pies-layer.gif)](https://jwasilgeo.github.io/esri-experiments/custom-point-layer/d3-pies-layer.html)
 
 ## custom-tile-layer
 
