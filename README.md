@@ -48,7 +48,7 @@ Find out what lies across the ocean and beyond by traveling around the Earth, an
 
 ## [custom-point-layer](https://jwasilgeo.github.io/esri-experiments/custom-point-layer/3-animate-custom-layer-with-animejs.html)
 
-Find out how to build your own 2D layer with the [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API) and animate it the help of [Anime.js](https://animejs.com/), or alternatively with [Tween.js](https://github.com/tweenjs/tween.js).
+Find out how to build your own 2D layer with the [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API) and animate it the help of [Anime.js](https://animejs.com/), or alternatively with [Tween.js](https://github.com/tweenjs/tween.js). You can also use canvas helpers from [D3.js](https://d3js.org/) to make donuts charts and _anything else_ you can dream of!
 
 [Radius animation example with Anime.js](https://jwasilgeo.github.io/esri-experiments/custom-point-layer/3-animate-custom-layer-with-animejs.html)
 
