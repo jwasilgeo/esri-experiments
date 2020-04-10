@@ -146,7 +146,9 @@ require([
     var basemapToggle = new BasemapToggle({
       view: view,
       nextBasemap: stamenBasemap,
-      titleVisible: false
+      visibleElements: {
+        title: false
+      }
     });
     view.ui.add(basemapToggle, 'bottom-left');
   }

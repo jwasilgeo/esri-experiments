@@ -50,11 +50,11 @@ require([
       // add a promise that has to be resolved before the elevation layer is considered loaded
       this.addResolvingPromise(internalLayerResourcePromise);
     },
-    fetchTile: function(level, row, col) {
+    fetchTile: function(level, row, col, options) {
       // fetch image tiles from the Black Marble WebTileLayer,
       // convert each pixel's "luminance" into elevation values,
       // and return a promise that resolves to an object with the properties defined in ElevationTileData
-      return this._earthAtNightLayer.fetchTile(level, row, col)
+      return this._earthAtNightLayer.fetchTile(level, row, col, options)
         .then(function(imageElement) {
           var width = imageElement.width;
           var height = imageElement.height;
@@ -213,9 +213,11 @@ require([
 
     // add a BasemapToggle widget to be able to see satellite imagery with custom terrain
     view.ui.add(new BasemapToggle({
-      titleVisible: true,
       view: view,
-      nextBasemap: 'satellite'
+      nextBasemap: 'satellite',
+      visibleElements: {
+        title: true
+      }
     }), 'top-right');
 
     // add a Locate widget and override its behavior
