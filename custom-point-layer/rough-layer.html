@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>JSAPI 4.x Custom BaseLayerView2D with Rough.js</title>
+
+  <link rel="stylesheet" href="https://js.arcgis.com/4.15/esri/themes/light/main.css" />
+
+  <style>
+    html,
+    body,
+    #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="viewDiv"></div>
+
+  <script src="https://unpkg.com/roughjs@4.3.1/bundled/rough.js"></script>
+  <script src="https://js.arcgis.com/4.15/"></script>
+
+  <script>
+    require([
+      "esri/Map",
+      "esri/views/MapView",
+      "esri/views/2d/layers/BaseLayerView2D",
+      "esri/layers/GraphicsLayer",
+      "esri/geometry/support/webMercatorUtils",
+      "esri/Graphic"
+    ], function (
+      Map,
+      MapView,
+      BaseLayerView2D,
+      GraphicsLayer,
+      webMercatorUtils,
+      Graphic
+    ) {
+      // PART A: custom extension of BaseLayerView2D
+      const CustomLayerView2D = BaseLayerView2D.createSubclass({
+        // constructor
+        // attach
+        // render
+        // detach
+
+        // implementation of render method in BaseLayerView2D
+        // https://developers.arcgis.com/javascript/latest/api-reference/esri-views-2d-layers-BaseLayerView2D.html#render
+        render: function (renderParameters) {
+          const state = renderParameters.state;
+
+          // rough.js instance with access to the canvas element
+          const roughCanvas = rough.canvas(renderParameters.context.canvas);
+
+          // assumes these are all graphics with point geometies
+          this.layer.graphics.forEach(function (graphic) {
+            // convert from spatial coordinates to screen coordinates
+            const mapCoords = [graphic.geometry.x, graphic.geometry.y];
+
+            // screenCoords array is modified in-place by state.toScreen()
+            const screenCoords = [0, 0];
+            state.toScreen(screenCoords, mapCoords[0], mapCoords[1]);
+
+            // make a sketchy circle with rough.js
+            // centerX, centerY, diameter, symbol
+            roughCanvas.circle(
+              screenCoords[0],
+              screenCoords[1],
+              80,
+              {
+                fill: 'red'
+              }
+            );
+          });
+        }
+      });
+
+      // PART B: custom extension of GraphicsLayer,
+      // which relies on the CustomLayerView2D defined in PART A above
+      // NOTE: by extending from the GraphicsLayer module instead of the Layer module,
+      // we get built-in and familiar functionality for adding/removing graphics
+      const CustomLayer = GraphicsLayer.createSubclass({
+        constructor: function () {},
+
+        createLayerView: function (view) {
+          if (view.type === "2d") {
+            return new CustomLayerView2D({
+              view: view,
+              layer: this
+            });
+          }
+        }
+      });
+
+      // create an initial point graphic to add to an instance of CustomLayer
+      const initialGraphic = new Graphic({
+        geometry: webMercatorUtils.geographicToWebMercator({
+          type: "point",
+          longitude: 20,
+          latitude: 50
+        })
+      });
+
+      // create an instance of CustomLayer
+      // with an initial graphic
+      const customLayerInstance = new CustomLayer({
+        graphics: [initialGraphic]
+      });
+
+      // add the map to the mapview
+      // add the custom layer instance to the map
+      const view = new MapView({
+        container: "viewDiv",
+        map: new Map({
+          basemap: "gray-vector",
+          layers: [customLayerInstance]
+        }),
+        zoom: 7,
+        center: [20, 50]
+      });
+
+      // clicking on the mapview will add a new point graphic to the custom layer instance
+      view.on("click", function (e) {
+        customLayerInstance.graphics.add(new Graphic({
+          geometry: e.mapPoint
+        }));
+      });
+    });
+  </script>
+</body>
+
+</html>

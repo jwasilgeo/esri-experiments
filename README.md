@@ -48,17 +48,24 @@ Find out what lies across the ocean and beyond by traveling around the Earth, an
 
 ## [custom-point-layer](https://jwasilgeo.github.io/esri-experiments/custom-point-layer/3-animate-custom-layer-with-animejs.html)
 
-Find out how to build your own 2D layer with the [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API) and animate it the help of [Anime.js](https://animejs.com/), or alternatively with [Tween.js](https://github.com/tweenjs/tween.js). You can also use canvas helpers from [D3.js](https://d3js.org/) to make donuts charts and _anything else_ you can dream of!
+Find out how to build your own 2D layer with the [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API) and animate it the help of [Anime.js](https://animejs.com/), or alternatively with [Tween.js](https://github.com/tweenjs/tween.js).
+
+You can also use canvas helpers from [D3.js](https://d3js.org/) to make donuts charts, draw sketchy looking graphics with [Rough.js](https://github.com/pshihn/rough), and anything else you can dream of.
 
 [Radius animation example with Anime.js](https://jwasilgeo.github.io/esri-experiments/custom-point-layer/3-animate-custom-layer-with-animejs.html)
 
 [Radius animation example with Tween.js](https://jwasilgeo.github.io/esri-experiments/custom-point-layer/3-animate-custom-layer-with-tweenjs.html)
 
+
 [Pie/donuts charts example with D3js](https://jwasilgeo.github.io/esri-experiments/custom-point-layer/d3-pies-layer.html)
+
+[_Sketchy_ example with Rough.js](https://jwasilgeo.github.io/esri-experiments/custom-point-layer/rough-layer.html)
 
 [![screenshot](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/custom-point-layer/point-layer-animation.gif)](https://jwasilgeo.github.io/esri-experiments/custom-point-layer/3-animate-custom-layer-with-animejs.html)
 
 [![screenshot-pies](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/custom-point-layer/pies-layer.gif)](https://jwasilgeo.github.io/esri-experiments/custom-point-layer/d3-pies-layer.html)
+
+[![screenshot-rough](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/custom-point-layer/rough-layer.png)](https://jwasilgeo.github.io/esri-experiments/custom-point-layer/rough-layer.html)
 
 ## custom-tile-layer
 
