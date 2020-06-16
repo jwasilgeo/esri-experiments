@@ -18,6 +18,8 @@ Also check out my [LeafletJS experiments](https://github.com/jwasilgeo/leaflet-e
 
 - [custom-tile-layer](#custom-tile-layer)
 
+- [scene-view-as-chart](#scene-view-as-chart)
+
 - [iss-view](#iss-view)
 
 ## [earth-at-night](https://jwasilgeo.github.io/esri-experiments/earth-at-night)
@@ -56,7 +58,6 @@ You can also use canvas helpers from [D3.js](https://d3js.org/) to make donuts c
 
 [Radius animation example with Tween.js](https://jwasilgeo.github.io/esri-experiments/custom-point-layer/3-animate-custom-layer-with-tweenjs.html)
 
-
 [Pie/donuts charts example with D3js](https://jwasilgeo.github.io/esri-experiments/custom-point-layer/d3-pies-layer.html)
 
 [_Sketchy_ example with Rough.js](https://jwasilgeo.github.io/esri-experiments/custom-point-layer/rough-layer.html)
@@ -78,6 +79,12 @@ Find out how to build your own tiled layer in either 2D or 3D with the [Canvas A
 [![screenshot](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/custom-tile-layer/text-screenshot.png)](https://jwasilgeo.github.io/esri-experiments/custom-tile-layer/custom-tile-layer.html)
 
 [![screenshot](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/custom-tile-layer/cats-screenshot.png)](https://jwasilgeo.github.io/esri-experiments/custom-tile-layer/custom-kittens-layer.html)
+
+## [scene-view-as-chart](https://jwasilgeo.github.io/esri-experiments/scene-view-as-chart)
+
+You've always wanted to turn a `SceneView` into your own 3D scatterplot charting library. Here you go.
+
+[![screenshot](https://raw.githubusercontent.com/jwasilgeo/esri-experiments/master/scene-view-as-chart/screenshot.jpg)](https://jwasilgeo.github.io/esri-experiments/scene-view-as-chart)
 
 ## [iss-view](https://jwasilgeo.github.io/esri-experiments/iss-view)
 

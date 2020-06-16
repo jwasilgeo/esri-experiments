@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>Scene View as a Chart</title>
+
+  <link rel="stylesheet" href="https://js.arcgis.com/4.15/esri/themes/light/main.css" />
+
+  <style>
+    html,
+    body,
+    #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="viewDiv"></div>
+
+  <script src="https://js.arcgis.com/4.15/"></script>
+
+  <script>
+    function getRandomArbitrary(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    require([
+      "esri/Map",
+      "esri/views/SceneView",
+      "esri/layers/GraphicsLayer",
+      "esri/geometry/SpatialReference",
+      "esri/widgets/Home"
+    ], function (Map, SceneView, GraphicsLayer, SpatialReference, Home) {
+      var clippingExtent = {
+        xmax: 1.0,
+        xmin: -1.0,
+        ymax: 1.0,
+        ymin: -1.0,
+        spatialReference: {
+          wkid: 4326
+        }
+      };
+
+      var graphicsArray = [];
+      for (var i = 0; i < 10000; i++) {
+        graphicsArray.push({
+          geometry: {
+            type: 'point',
+            x: getRandomArbitrary(-1, 1),
+            y: getRandomArbitrary(-1, 1),
+            z: getRandomArbitrary(-100000, 100000),
+            spatialReference: {
+              wkid: 4326
+            }
+          },
+          // attributes: {
+          //   ObjectID: i
+          // }
+        });
+      }
+
+      var dataGraphicsLayer = new GraphicsLayer({
+        graphics: graphicsArray
+      });
+
+      var map = new Map({
+        basemap: "topo",
+        layers: [
+          dataGraphicsLayer
+        ],
+        ground: {
+          navigationConstraint: {
+            type: "none"
+          },
+          opacity: 0.5,
+          // surfaceColor: "#004C73"
+        }
+      });
+
+      var view = new SceneView({
+        container: "viewDiv",
+        map: map,
+        viewingMode: "local",
+        clippingArea: clippingExtent,
+        environment: {
+          atmosphere: null,
+          starsEnabled: false,
+          // background: {
+          //   type: "color",
+          //   color: [255, 255, 255, 0.25]
+          // },
+        },
+        camera: {
+          heading: 30,
+          tilt: 55,
+          position: {
+            x: -2.75,
+            y: -5,
+            z: 450000,
+            spatialReference: {
+              wkid: 4326
+            }
+          }
+        }
+      });
+
+      view.when(function () {
+        view.map.basemap = null;
+      });
+
+      view.ui.add(new Home({ view, }), "top-left");
+    });
+  </script>
+</body>
+
+</html>
