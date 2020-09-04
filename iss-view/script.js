@@ -3,20 +3,17 @@ require([
 
   'esri/Basemap',
   'esri/geometry/Circle',
-  // 'esri/Graphic',
-  // 'esri/layers/GraphicsLayer',
   'esri/layers/WebTileLayer',
   'esri/Map',
-  'esri/symbols/SimpleFillSymbol',
   'esri/tasks/QueryTask',
   'esri/tasks/support/Query',
   'esri/views/SceneView',
   'esri/widgets/BasemapToggle',
 
   'dojo/domReady!'
-], function(
+], function (
   dojoRequestScript,
-  Basemap, Circle, /*Graphic, GraphicsLayer,*/ WebTileLayer, Map, SimpleFillSymbol, QueryTask, Query, SceneView, BasemapToggle
+  Basemap, Circle, WebTileLayer, Map, QueryTask, Query, SceneView, BasemapToggle
 ) {
   var previousCoordinates;
 
@@ -26,21 +23,18 @@ require([
   var creditsNode = document.getElementById('creditsNode');
   var infoMessageNode = document.getElementById('infoMessageNode');
 
-  var issLocationUrl = 'http://api.open-notify.org/iss-now.json';
+  // var issLocationUrl = 'http://api.open-notify.org/iss-now.json';
+  var issLocationUrl = 'https://open-notify-api.herokuapp.com/iss-now.json';
 
-  var firstTimeUpdateDelay = 15000;
-  var updateDelay = 30000;
-  var cameraViewChangeDuration = 30000;
-
-  var queryTaskExecute = null;
+  // var firstUpdateDelay = 3000;
+  var firstCameraViewChangeDuration = 3000;
+  var updateDelay = 10000;
+  var cameraViewChangeDuration = updateDelay * 2;
 
   var map = new Map({
     basemap: 'satellite',
-    ground: 'world-elevation'
+    // ground: 'world-elevation'
   });
-
-  // var graphicsLayer = new GraphicsLayer();
-  // map.add(graphicsLayer);
 
   var view = new SceneView({
     container: 'viewNode',
@@ -63,48 +57,43 @@ require([
     },
     ui: {
       components: ['attribution']
+    },
+    navigation: {
+      browserTouchPanEnabled: false,
+      mouseWheelZoomEnabled: false,
+      gamepad: {
+        enabled: false
+      }
     }
   });
 
   view.ui.add('creditsNode', 'bottom-right');
-  creditsNode.style.display = 'block';
+  creditsNode.style.display = 'flex';
 
-  view.when(function(view) {
+  view.when(function (view) {
     startupMappingComponents(view);
+    disableZooming(view);
   });
 
   function startupMappingComponents(view) {
-    infoMessageNode.innerHTML = 'We\'re looking around for the space station. Hold on!';
+    infoMessageNode.innerHTML = '<div>We\'re looking around for the space station. Hold on!</div><img src="./favicon.ico" width="80" alt="International Space Station icon" style="animation: 2s rotate-station-icon infinite linear; filter: brightness(500%);">';
     infoMessageNode.style.display = 'flex';
 
     establishIssLocation();
-
-    view.ui.add('smallButtonsControl', 'top-right');
-    addDaylightToggle(view);
-    addAstroPhotosToggle(view);
-    addCustomBasemap(view);
   }
 
   function addAstroPhotosToggle(view) {
     // view.ui.add('astroPhotosToggle', 'top-right');
     view.ui.add('photosParentNode', 'top-right');
     astroPhotosToggle.style.display = 'flex';
-    photosParentNode.style.display = 'block';
+    photosParentNode.style.display = 'none';
 
-    astroPhotosToggle.addEventListener('click', function() {
+    astroPhotosToggle.addEventListener('click', function () {
       if (photosParentNode.style.display === 'none') {
         photosParentNode.style.display = 'block';
-        if (view.stationary) {
-          getPhotos(view.extent.center);
-        }
+        getPhotos(view.extent.center);
       } else {
         photosParentNode.style.display = 'none';
-      }
-    });
-
-    view.watch('stationary', function(value) {
-      if (value) {
-        getPhotos(view.extent.center);
       }
     });
   }
@@ -115,7 +104,7 @@ require([
     daylightToggle.style.display = 'flex';
 
     var timeAtCreation = view.environment.lighting.clone().date;
-    daylightToggle.addEventListener('click', function() {
+    daylightToggle.addEventListener('click', function () {
       if (view.environment.lighting.date.getTime() === timeAtCreation.getTime()) {
         view.environment.lighting.date = timeAtCreation.getTime() + (12 * 3.6e+6);
       } else {
@@ -128,19 +117,19 @@ require([
     var stamenBasemap = new Basemap({
       baseLayers: [
         new WebTileLayer({
-          urlTemplate: '//stamen-tiles-{subDomain}.a.ssl.fastly.net/toner/{level}/{col}/{row}.png',
+          urlTemplate: 'https://stamen-tiles-{subDomain}.a.ssl.fastly.net/toner/{level}/{col}/{row}.png',
           subDomains: ['a', 'b', 'c', 'd'],
           copyright: [
-            'Map tiles by <a href="http://stamen.com">Stamen Design</a>, ',
-            'under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. ',
-            'Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, ',
-            'under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.'
+            'Map tiles by <a href="https://stamen.com">Stamen Design</a>, ',
+            'under <a href="https://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. ',
+            'Data by <a href="https://openstreetmap.org">OpenStreetMap</a>, ',
+            'under <a href="https://www.openstreetmap.org/copyright">ODbL</a>.'
           ].join('')
         })
       ],
       title: 'Toner',
       id: 'toner',
-      thumbnailUrl: '//stamen-tiles.a.ssl.fastly.net/toner/10/177/409.png'
+      thumbnailUrl: 'https://stamen-tiles.a.ssl.fastly.net/toner/10/177/409.png'
     });
 
     var basemapToggle = new BasemapToggle({
@@ -167,21 +156,24 @@ require([
           latitude: res.iss_position.latitude,
           longitude: res.iss_position.longitude
         };
-        setTimeout(establishIssLocation, 750);
+        setTimeout(establishIssLocation, 1000);
       } else {
-        infoMessageNode.innerHTML = '';
-        infoMessageNode.style.display = 'none';
-
         updateCameraPosition({
           latitude: res.iss_position.latitude,
           longitude: res.iss_position.longitude
-        }, 1000);
+        }, firstCameraViewChangeDuration)
+          .then(function () {
+            getCurrentIssLocation();
 
-        astroPhotosToggle.style.display = 'flex';
-        photosParentNode.style.display = 'block';
+            infoMessageNode.innerHTML = '';
+            infoMessageNode.style.display = 'none';
 
-        // update the location after a delay (only once from here)
-        setTimeout(getCurrentIssLocation, 1000);
+            view.ui.add('smallButtonsControl', 'top-right');
+            addDaylightToggle(view);
+            addAstroPhotosToggle(view);
+
+            addCustomBasemap(view);
+          });
       }
     }
   }
@@ -191,7 +183,7 @@ require([
     infoMessageNode.innerHTML = 'We had trouble finding out where the space station is right now. Please try later.';
     infoMessageNode.style.display = 'flex';
 
-    setTimeout(function() {
+    setTimeout(function () {
       infoMessageNode.innerHTML = '';
       infoMessageNode.style.display = 'none';
 
@@ -212,17 +204,6 @@ require([
 
   function getCurrentIssLocationSuccess(res) {
     if (res.message === 'success') {
-
-      if (
-        (Number(previousCoordinates.latitude).toFixed(3) !== view.camera.position.latitude.toFixed(3)) ||
-          (Number(previousCoordinates.longitude).toFixed(3) !== view.camera.position.longitude.toFixed(3))
-      ) {
-        infoMessageNode.innerHTML = 'Get ready. You\'re going to get moved.';
-        infoMessageNode.style.display = 'flex';
-      }
-
-      // delay the next position if the user got off track to display a warning message
-      // setTimeout(function() {
       infoMessageNode.innerHTML = '';
       infoMessageNode.style.display = 'none';
 
@@ -232,22 +213,20 @@ require([
       }, cameraViewChangeDuration);
 
       // update the location after a delay (continue indefinitely from here)
-      setTimeout(function() {
+      setTimeout(function () {
         getCurrentIssLocation();
       }, updateDelay);
-
-      // }, 3000);
     }
   }
 
   function getCurrentIssLocationError(err) {
     console.error(err);
     infoMessageNode.innerHTML =
-        '<div>It seems that we\'ve misplaced the space station.</div>' +
-        '<div>We\'ll try to look again in a minute or two.</div>' +
-        '<div>Go click on something else.</div>';
+      '<div>It seems that we\'ve misplaced the space station.</div>' +
+      '<div>We\'ll try to look again in a minute or two.</div>' +
+      '<div>Go click on something else.</div>';
     infoMessageNode.style.display = 'flex';
-    setTimeout(function() {
+    setTimeout(function () {
       infoMessageNode.style.display = 'none';
     }, 15000);
     setTimeout(getCurrentIssLocation, 60000);
@@ -258,15 +237,15 @@ require([
     previousCoordinates = nextCoordinates;
 
     // getPhotos(view.extent.center);
-    // getPhotos([nextCoordinates.longitude, nextCoordinates.latitude]);
+    getPhotos([nextCoordinates.longitude, nextCoordinates.latitude]);
 
-    view.goTo({
+    return view.goTo({
       position: {
         latitude: nextCoordinates.latitude,
         longitude: nextCoordinates.longitude,
         z: 412500 // altitude in meters
       },
-      tilt: 65,
+      tilt: 60,
       heading: heading
     }, {
       speedFactor: 1,
@@ -277,7 +256,7 @@ require([
   }
 
   function getPhotos(centerPoint) {
-    if (photosParentNode.style.display === 'none') {
+    if (photosParentNode.style.display === 'none' || photosParentNode.style.display === '') {
       return;
     }
 
@@ -288,52 +267,31 @@ require([
       geodesic: true
     });
 
-    /*graphicsLayer.add(new Graphic({
-      geometry: searchGeometry,
-      symbol: new SimpleFillSymbol({
-        color: [51, 51, 204, 0.9],
-        style: 'solid',
-        outline: {
-          color: 'white',
-          width: 1
-        }
-      })
-    }));*/
-
-    var queryTask = new QueryTask({
-      url: '//services2.arcgis.com/gLefH1ihsr75gzHY/arcgis/rest/services/ISSPhotoLocations_20_34/FeatureServer/0',
-    });
     var query = new Query();
     query.geometry = searchGeometry;
     query.returnGeometry = false;
     query.outFields = ['missionRollFrame', 'mission', 'roll', 'frame'];
 
-    // if (queryTaskExecute && !queryTaskExecute.isResolved()) {
-    if (queryTaskExecute && !queryTaskExecute.isFulfilled()) {
-      queryTaskExecute.cancel();
-      queryTaskExecute = null;
-    }
+    var queryTask = new QueryTask({
+      url: 'https://services2.arcgis.com/gLefH1ihsr75gzHY/arcgis/rest/services/ISSPhotoLocations_20_34/FeatureServer/0',
+    });
 
-    queryTaskExecute = queryTask.execute(query);
-
-    queryTaskExecute.then(function(results) {
-      queryTaskExecute = null;
-
+    queryTask.execute(query).then(function (results) {
       while (photosNode.hasChildNodes()) {
         photosNode.removeChild(photosNode.firstChild);
       }
 
       var docFragment = document.createDocumentFragment();
 
-      results.features.slice(0, 25).forEach(function(feature) {
+      results.features.slice(0, 25).forEach(function (feature) {
         var div = document.createElement('div');
         var a = document.createElement('a');
-        a.href = '//eol.jsc.nasa.gov/SearchPhotos/photo.pl?mission=' + feature.attributes.mission + '&roll=' + feature.attributes.roll + '&frame=' + feature.attributes.frame;
+        a.href = 'https://eol.jsc.nasa.gov/SearchPhotos/photo.pl?mission=' + feature.attributes.mission + '&roll=' + feature.attributes.roll + '&frame=' + feature.attributes.frame;
         a.target = '_blank';
 
         var img = document.createElement('img');
         img.width = '150';
-        img.src = '//eol.jsc.nasa.gov/DatabaseImages/ESC/small/' + feature.attributes.mission + '/' + feature.attributes.missionRollFrame + '.JPG';
+        img.src = 'https://eol.jsc.nasa.gov/DatabaseImages/ESC/small/' + feature.attributes.mission + '/' + feature.attributes.missionRollFrame + '.JPG';
         img.title = 'NASA Johnson Space Center';
 
         a.appendChild(img);
@@ -354,5 +312,47 @@ require([
     var geodesyPointA = new LatLon(esriPointA.latitude, esriPointA.longitude);
     var geodesyPointB = new LatLon(esriPointB.latitude, esriPointB.longitude);
     return geodesyPointA[geodesyMethodName](geodesyPointB);
+  }
+
+  function disableZooming(view) {
+    // stops propagation of default behavior when an event fires
+    function stopEvtPropagation(event) {
+      event.stopPropagation();
+    }
+
+    // disable mouse wheel scroll zooming on the view
+    view.on('mouse-wheel', stopEvtPropagation);
+
+    view.on('pointer-down', stopEvtPropagation);
+    view.on('pointer-move', stopEvtPropagation);
+    view.on('hold', stopEvtPropagation);
+
+    // disable zooming via double-click on the view
+    view.on('double-click', stopEvtPropagation);
+
+    // disable zooming out via double-click + Control on the view
+    view.on('double-click', ['Control'], stopEvtPropagation);
+
+    // disables pinch-zoom and panning on the view
+    view.on('drag', stopEvtPropagation);
+
+    // disable the view's zoom box to prevent the Shift + drag
+    // and Shift + Control + drag zoom gestures.
+    view.on('drag', ['Shift'], stopEvtPropagation);
+    view.on('drag', ['Shift', 'Control'], stopEvtPropagation);
+
+    // prevent any keyboard interaction (zooming and panning)
+    view.on('key-down', function (event) {
+      // prevents zooming with the + and - keys
+      // var prohibitedKeys = ['+', '-', 'Shift', '_', '='];
+      // var keyPressed = event.key;
+      // if (prohibitedKeys.indexOf(keyPressed) !== -1) {
+      //  stopEvtPropagation();
+      // }
+
+      stopEvtPropagation(event);
+    });
+
+    return view;
   }
 });

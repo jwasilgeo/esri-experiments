@@ -9,10 +9,10 @@
   <title>Take a ride on the ISS</title>
   <link rel="icon" href="favicon.ico" type="image/x-icon">
 
-  <link rel="stylesheet" href="//js.arcgis.com/4.15/esri/css/main.css">
+  <link rel="stylesheet" href="https://js.arcgis.com/4.16/esri/css/main.css">
   <style>
     body {
-      font-family: "Avenir Next W01", "Avenir Next W00", "Avenir Next", "Avenir", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+      font-family: "Avenir Next", "Helvetica Neue", Helvetica, Arial, sans-serif;
     }
 
     html,
@@ -27,19 +27,23 @@
     #photosParentNode {
       padding: 5px;
       background-color: rgba(255, 255, 255, 0.35);
-      max-height: 600px
+      height: 50vh;
+      max-height: 500px;
+      display: none;
     }
 
     #smallButtonsControl {
       display: flex;
       box-shadow: none !important;
+      margin-bottom: 0;
     }
 
     #photosNode {
       padding-right: 22px;
-      overflow-y: auto;
+      overflow-y: visible;
       overflow-x: hidden;
-      max-height: 600px;
+      height: 50vh;
+      max-height: 500px;
     }
 
     #daylightToggle {
@@ -86,9 +90,9 @@
       flex-direction: column;
       align-items: center;
       position: absolute;
-      top: 40%;
-      left: 25%;
-      right: 25%;
+      top: 30%;
+      left: 10%;
+      right: 10%;
       color: #de2900;
       font-size: 1.5em;
       font-weight: bold;
@@ -97,14 +101,23 @@
 
     /* slightly smaller basemap toggle */
     .esri-basemap-toggle {
-      height: 58px;
-      width: 53px;
+      height: 55px;
+      width: 50px;
     }
 
     .esri-basemap-toggle__container,
     .esri-basemap-toggle__image {
-      height: 53px;
-      width: 53px;
+      height: 50px;
+      width: 50px;
+    }
+
+    @keyframes rotate-station-icon {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
     }
   </style>
 
@@ -113,16 +126,13 @@
 <body>
   <div id="viewNode">
     <div id="smallButtonsControl">
-      <div>
-        <input id="hoursAdjustment" class="off" type="range" name="" min="-12" max="12" step="0.5" value="0" title="Adjust Daylight">
-      </div>
-      <div id="daylightToggle" role="button" tabindex="0" class="off esri-component esri-widget--button esri-widget esri-interactive">
+      <div id="daylightToggle" role="button" tabindex="0" class="off esri-component esri-widget--button esri-widget esri-interactive" title="Adjust daylight">
         <span aria-hidden="true" class="esri-icon esri-icon-environment-settings bigger-icon" title="Adjust Daylight"></span>
-        <span class="esri-icon-font-fallback-text">Daylight</span>
+        <span class="esri-icon-font-fallback-text">Adjust daylight</span>
       </div>
-      <div id="astroPhotosToggle" role="button" tabindex="0" class="off esri-component esri-widget--button esri-widget esri-interactive">
-        <span aria-hidden="true" class="esri-icon esri-icon-media bigger-icon" title="Astronaut Photos"></span>
-        <span class="esri-icon-font-fallback-text">Astronaut Photos</span>
+      <div id="astroPhotosToggle" role="button" tabindex="0" class="off esri-component esri-widget--button esri-widget esri-interactive" title="Explore astronaut photos">
+        <span aria-hidden="true" class="esri-icon esri-icon-media bigger-icon" title="Explore astronaut photos"></span>
+        <span class="esri-icon-font-fallback-text">Explore astronaut photos</span>
       </div>
     </div>
 
@@ -131,19 +141,29 @@
     </div>
 
     <div id="creditsNode" class="esri-widget esri-component credits">
-      <a target="_blank" href="https://twitter.com/JWasilGeo">@JWasilGeo</a>
-      |
-      <a target="_blank" href="https://github.com/jwasilgeo/esri-experiments/tree/master/iss-view">Github</a>
-      <div class="iss">
-        ISS location © <a href="http://open-notify.org/" target="_blank">Open Notify</a>
+      <div style="height: 46px; margin: 0 0 0 5px; display: flex; align-items: center;">
+        <img src="./favicon.ico" height="40" alt="International Space Station icon">
+      </div>
+      <div style="height: 46px;">
+        <a target="_blank" href="https://twitter.com/JWasilGeo">@JWasilGeo</a>
+        |
+        <a target="_blank" href="https://github.com/jwasilgeo/esri-experiments/tree/master/iss-view" style="margin-right: 5px;">Github</a>
+        <div class="iss">
+          ISS location © <a href="http://open-notify.org/" target="_blank">Open Notify</a>
+        </div>
       </div>
     </div>
+
+    <!-- <div id="locatorMapNode" class="esri-widget esri-component">
+      <canvas width="80" height="80"></canvas>
+    </div> -->
 
     <div id="infoMessageNode" class="info-message"></div>
   </div>
 
-  <script src="//js.arcgis.com/4.15/"></script>
-  <script src="//unpkg.com/geodesy@1.1.3/latlon-spherical"></script>
+  <script src="https://js.arcgis.com/4.16/"></script>
+  <script src="https://unpkg.com/geodesy@1.1.3/latlon-spherical"></script>
+  <!-- <script src="https://d3js.org/d3.v6.min.js"></script> -->
   <script src="script.js"></script>
 </body>
 
