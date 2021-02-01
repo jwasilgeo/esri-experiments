@@ -118,7 +118,7 @@ require([
         analysisGraphicsLayer3D
       ]
     }),
-    center: [38.8, -42],
+    center: [38.8, 0],
     alphaCompositingEnabled: true,
     environment: {
       starsEnabled: false,

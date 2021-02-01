@@ -233,7 +233,7 @@ require([
           tilt: 0,
           heading: 0
         }, {
-          speedFactor: 0.25
+          speedFactor: 0.66
         })
           .then(function() {
             goToParams.target.scale = 3400000;
@@ -241,7 +241,7 @@ require([
             goToParams.target.heading = originalHeading;
 
             return view.goTo(goToParams.target, {
-              speedFactor: 0.5
+              speedFactor: 0.66
             });
           });
       }

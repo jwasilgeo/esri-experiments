@@ -8,7 +8,7 @@
 
   <title>Around the World</title>
 
-  <link rel="stylesheet" href="https://js.arcgis.com/4.17/esri/css/view.css">
+  <link rel="stylesheet" href="https://js.arcgis.com/4.18/esri/css/view.css">
   <link rel="stylesheet" href="https://unpkg.com/dragdealer@0.10.0/src/dragdealer.css">
   <style>
     html,
@@ -81,7 +81,7 @@
     .info-text-box {
       display: none;
       width: 300px;
-      padding: 5px;
+      padding: 8px;
       top: 70px;
       left: 0;
       right: 0;
@@ -96,7 +96,7 @@
       opacity: 0;
       display: none;
       transition: opacity 0.5s ease-in;
-      margin-bottom: 5px;
+      margin-bottom: 6px;
     }
 
     .antipode-info a {
@@ -157,14 +157,14 @@
   </div>
 
   <div id="instructions" class="esri-widget esri-component info-text-box">
-    <ol style="padding-left: 25px; margin: 5px 0;">
-      <li><span class="bold-font">Click</span> on the globe to stand somewhere.</li>
-      <li><span class="bold-font">Move</span> the red slider to face any direction.</li>
-      <li><span class="bold-font">Follow</span> the line to see what lies beyond.</li>
+    <ol style="padding-left: 25px; margin: 6px 0;">
+      <li><span class="bold-font">Tap</span> on the globe to stand somewhere.</li>
+      <li><span class="bold-font">Move</span> the <span style="color:#f44336; font-weight: bold;">red slider</span> to face any direction.</li>
+      <li><span class="bold-font">Follow</span> the <span style="color: #673ab7; font-weight: bold;">purple line</span> with your eyes to see what lies beyond.</li>
     </ol>
 
     <div id="antipodeInfo" class="antipode-info">
-      The two red markers are <a class="bold-font" href="https://jwasilgeo.github.io/esri-experiments/antipodes/" target="_blank">antipodes</a>.
+      The two <span style="color:#f44336; font-weight: bold;">red markers</span> are <a class="bold-font" href="https://jwasilgeo.github.io/esri-experiments/antipodes/" target="_blank">antipodes</a>.
     </div>
   </div>
 
@@ -174,7 +174,7 @@
   </div>
 
   <script src="https://unpkg.com/dragdealer@0.10.0"></script>
-  <script src="https://js.arcgis.com/4.17/"></script>
+  <script src="https://js.arcgis.com/4.18/"></script>
   <script src="script.js"></script>
 </body>
 
