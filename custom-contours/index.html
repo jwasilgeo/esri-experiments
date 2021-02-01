@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
 
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
-    <title>Custom LERC Layer - 4.6</title>
-    <link rel="stylesheet" href="https://js.arcgis.com/4.11/esri/css/view.css">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>Custom Contours</title>
+  <link rel="stylesheet" href="https://js.arcgis.com/4.18/esri/css/view.css">
 
-    <style>
+  <style>
     html,
     body,
     #viewDiv {
@@ -16,23 +16,15 @@
       height: 100%;
       width: 100%;
     }
-
   </style>
-
-<script>
-  var dojoConfig = {
-    paths: {
-      // see https://github.com/Esri/lerc
-      lerc: "https://cdn.rawgit.com/Esri/lerc/b0650ff9/OtherLanguages/js/"
-    }
-  };
-  </script>
-
 </head>
 
 <body>
   <div id="viewDiv"></div>
-  <script src="https://js.arcgis.com/4.11/"></script>
+
+  <!-- https://github.com/Esri/lerc/tree/master/OtherLanguages/js -->
+  <script type="text/javascript" src="https://unpkg.com/lerc@2.0.0/LercDecode.js"></script>
+  <script src="https://js.arcgis.com/4.18/"></script>
 
   <script>
     // TODO: add this example page to the repo's README
@@ -41,184 +33,155 @@
       "esri/views/MapView",
       "esri/layers/BaseTileLayer",
       "esri/request",
-      "lerc/LercDecode",
 
       "dojo/domReady!"
-    ], function(
+    ], function (
       Map,
       MapView,
       BaseTileLayer,
-      esriRequest,
-      LercDecode
+      esriRequest
     ) {
 
-        // **********************************************
-        // Create a subclass of BaseTileLayer
-        // **********************************************
+      // **********************************************
+      // Create a subclass of BaseTileLayer
+      // **********************************************
 
-        var LercLayer = BaseTileLayer.createSubclass({
+      var LercLayer = BaseTileLayer.createSubclass({
+        // lerc layer properties
+        properties: {
+          urlTemplate: null,
+          intervalsArray: null
+        },
 
-          // lerc layer properties
-          properties: {
-            urlTemplate: null
-          },
+        // Generates the URL to an image to be requested from the server
+        getTileUrl: function (level, row, col, options) {
+          return this.urlTemplate.replace("{z}", level).replace("{x}",
+            col).replace("{y}", row);
+        },
 
-          // Generates the URL to an image to be requested from the server
-          getTileUrl: function(level, row, col) {
-            return this.urlTemplate.replace("{z}", level).replace("{x}",
-              col).replace("{y}", row);
-          },
+        // fetch tiles visible in the view
+        fetchTile: function (level, row, col, options) {
+          var url = this.getTileUrl(level, row, col, options);
 
-          // fetch tiles visible in the view
-          fetchTile: function(level, row, col) {
-            var url = this.getTileUrl(level, row, col);
+          // requested encoded elevation information
+          return esriRequest(url, {
+            responseType: "array-buffer"
+          })
+            .then(function (response) {
+              // create a canvas to draw the processed image
+              var canvas = document.createElement("canvas");
+              var context = canvas.getContext("2d");
+              var width = this.tileInfo.size[0];
+              var height = this.tileInfo.size[1];
 
-            // requested encoded elevation information
-            return esriRequest(url, {
-              responseType: "array-buffer"
-            })
-              .then(function(response) {
-                // create a canvas to draw the processed image
-                var canvas = document.createElement("canvas");
-                var context = canvas.getContext("2d");
-                var width = this.tileInfo.size[0];
-                var height = this.tileInfo.size[1];
+              canvas.width = width;
+              canvas.height = height;
 
-                canvas.width = width;
-                canvas.height = height;
+              // uncompress raw elevation values in lerc format
+              // into a pre-allocated array of elevation values
+              var lerc = Lerc.decode(response.data, {
+                noDataValue: 0
+              });
 
-                // uncompress raw elevation values in lerc format
-                // into a pre-allocated array of elevation values.
-                var lerc = LercDecode.decode(response.data, {
-                  noDataValue: 0
-                });
+              // Array of elevation values
+              var pixels = lerc.pixels[0];
 
-                // Array of elevation values
-                var pixels = lerc.pixels[0];
+              // stats for min, max and no data values for uncompressed elevation
+              var stats = lerc.statistics[0];
+              var noDataValue = stats.noDataValue;
 
-                // stats for min, max and no data
-                // values for uncompressed elevation
-                var stats = lerc.statistics[0];
+              // Create a new blank image data object with the specified dimensions.
+              // The imageData represents the underlying pixel data of the canvas.
+              var imageData = context.createImageData(width, height);
+              var data = imageData.data;
+              var value = 0;
+              var j;
 
-                var noDataValue = stats.noDataValue;
+              // Loop through elevation array to generate an image that will be displayed.
+              for (var i = 0; i < width * height; i++) {
+                // Map tile size is 256x256. Elevation values have a tile size of 257 so we skip the last elevation.
+                // Whenever "i" is incremented by 256 to jump to the next row.
+                j = i + Math.floor(i / width);
 
-                // Create a new blank image data object with the specified
-                // dimensions. The imageData represents the underlying
-                // pixel data of the canvas.
-                var imageData = context.createImageData(width, height);
+                value = this.intervalsArray.indexOf(Math.round(
+                  pixels[j])) >
+                  -1 ? 256 : 0;
 
-                // get one-dimensional array
-                // containing the data in the RGBA order, with integer values
-                // between 0 and 255 (included).
-                var data = imageData.data;
-
-                // var factor = 256 / (max - min);
-                var value = 0;
-                var j;
-
-                // Loop through elevation array to generate an
-                // image that will be displayed.
-                // As mentioned above `pixels` is a flat array of color values
-                // and alpha [r, g, b, a, r, g, b, a, ...]
-                // We need to iterate through elevations and assign color
-                // and alpha values respectively.
-                for (var i = 0; i < width * height; i++) {
-                  // map tile size is 256x256. Elevation values have a
-                  // tile size of 257 so we skip the last elevation
-                  // whenever "i" is incremented by 256 to jump to the next row.
-                  j = i + Math.floor(i / width);
-                  // read the elevation value at the given index from the elevation
-                  // array and multiply it by the factor. This will define
-                  // the shade of blue color for the pixel.
-                  // value = (pixels[j] - min) * factor;
-                  //value = [stats.minValue, stats.maxValue].indexOf(pixels[j]) > -1 ? 256 : 0;
-
-                  value = this.intervalsArray.indexOf(Math.round(
-                    pixels[j])) >
-                    -1 ? 256 : 0;
-
-                  if (!value) {
-                    value = intervalsArray.indexOf(Math.round(pixels[
-                      j]) + 1) > -1 ? 256 : 0;
-                  }
-
-                  if (!value) {
-                    value = intervalsArray.indexOf(Math.round(pixels[
-                      j]) - 1) > -1 ? 256 : 0;
-                  }
-
-                  if (!value) {
-                    value = intervalsArray.indexOf(Math.round(pixels[
-                      j]) + 2) > -1 ? 256 : 0;
-                  }
-
-                  if (!value) {
-                    value = intervalsArray.indexOf(Math.round(pixels[
-                      j]) - 2) > -1 ? 256 : 0;
-                  }
-
-                  // if (!value) {
-                  //   value = intervalsArray.indexOf(Math.round(pixels[
-                  //     j]) + 3) > -1 ? 256 : 0;
-                  // }
-
-                  // if (!value) {
-                  //   value = intervalsArray.indexOf(Math.round(pixels[
-                  //     j]) - 3) > -1 ? 256 : 0;
-                  // }
-
-                  // create RGBA value for the pixels
-                  data[i * 4] = value / 2; // r
-                  data[i * 4 + 1] = 0; // g
-                  data[i * 4 + 2] = value; // b
-                  data[i * 4 + 3] = pixels[i] === noDataValue ? 0 :
-                    value; // a
+                if (!value) {
+                  value = this.intervalsArray.indexOf(Math.round(pixels[
+                    j]) + 1) > -1 ? 256 : 0;
                 }
 
-                // The elevation change image and ready for display
-                context.putImageData(imageData, 0, 0);
+                if (!value) {
+                  value = this.intervalsArray.indexOf(Math.round(pixels[
+                    j]) - 1) > -1 ? 256 : 0;
+                }
 
-                return canvas;
-              }.bind(this));
-          }
-        });
+                if (!value) {
+                  value = this.intervalsArray.indexOf(Math.round(pixels[
+                    j]) + 2) > -1 ? 256 : 0;
+                }
 
-        // **********************************************
-        // Start of the javascript application
-        // **********************************************
+                if (!value) {
+                  value = this.intervalsArray.indexOf(Math.round(pixels[
+                    j]) - 2) > -1 ? 256 : 0;
+                }
 
-        // create a new instance of the LercLayer
-        var intervalsArray = [];
+                // if (!value) {
+                //   value = this.intervalsArray.indexOf(Math.round(pixels[
+                //     j]) + 3) > -1 ? 256 : 0;
+                // }
 
-        for (var foo = 0; foo < 10000; foo += 50) {
-          intervalsArray.push(foo);
+                // if (!value) {
+                //   value = this.intervalsArray.indexOf(Math.round(pixels[
+                //     j]) - 3) > -1 ? 256 : 0;
+                // }
+
+                // create RGBA value for the pixels
+                data[i * 4] = value / 2; // r
+                data[i * 4 + 1] = 0; // g
+                data[i * 4 + 2] = value; // b
+                data[i * 4 + 3] = pixels[i] === noDataValue ? 0 :
+                  value; // a
+              }
+
+              // The elevation change image and ready for display
+              context.putImageData(imageData, 0, 0);
+
+              return canvas;
+            }.bind(this));
         }
-
-        console.log(intervalsArray);
-
-        var lercLayer = new LercLayer({
-          urlTemplate: "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/{z}/{y}/{x}",
-          intervalsArray: intervalsArray
-        });
-
-        // create a new instance of Map and add LercLayer
-        var map = new Map({
-          basemap: "streets-navigation-vector",
-          layers: [lercLayer]
-        });
-
-        // create a new instance of MapView
-        var view = new MapView({
-          container: "viewDiv",
-          map: map,
-          center: [-105.22, 39.765],
-          zoom: 13,
-          constraints: {
-            maxZoom: 15
-          }
-        });
-
       });
+
+      // create a new instance of the LercLayer
+      var intervalsArray = [];
+      for (var start = 0; start < 10000; start += 25) {
+        intervalsArray.push(start);
+      }
+      var lercLayer = new LercLayer({
+        urlTemplate: "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/{z}/{y}/{x}",
+        intervalsArray: intervalsArray
+      });
+
+      // create a new instance of Map and add LercLayer
+      var map = new Map({
+        basemap: "streets-navigation-vector",
+        layers: [lercLayer]
+      });
+
+      // create a new instance of MapView
+      var view = new MapView({
+        container: "viewDiv",
+        map: map,
+        center: [-105.22, 39.765],
+        zoom: 13,
+        constraints: {
+          minZoom: 12,
+          maxZoom: 16
+        }
+      });
+
+    });
   </script>
 </body>
 

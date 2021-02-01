@@ -27,6 +27,8 @@
     .panel {
       float: left;
       width: 50%;
+      border: 1px solid white;
+      box-sizing: border-box;
     }
 
     .major {
@@ -38,28 +40,29 @@
     }
 
     .stats {
-      font-size: 5em;
+      font-size: calc(1vw + 0.25vh + 5vmin);
       text-align: center;
       background-color: black;
       color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
 
     .a-bit-smaller {
-      font-size: 0.5em;
+      font-size: 0.7em;
     }
 
     .a-bit-smaller-2x {
-      font-size: 0.2em;
+      font-size: 0.45em;
     }
 
-    .bottom-left-panel {
+    .top-left-panel {
       padding: 0 0 4px 4px;
-      position: absolute;
-      bottom: 0;
       text-align: left;
     }
 
-    .top-right-panel {
+    .bottom-right-panel {
       padding: 4px 4px 0 0;
       text-align: right;
     }
@@ -83,7 +86,7 @@
     }
 
     .title-text {
-      font-size: calc(1vw + 0.25vh + 5vmin);
+      font-size: 0.8em;
     }
 
     #mainContent {
@@ -120,26 +123,28 @@
       </div>
     </div>
 
-    <div class="panel minor">
-      <div id="sceneViewDivB"></div>
-    </div>
-
     <div class="panel minor stats">
-      <div class="top-right-panel">
-        <div class="a-bit-smaller">THEN LOOK UP HERE <span style="bottom: 6px; position: relative;">&uarr;</span></div>
-        <div class="a-bit-smaller-2x">(that's the opposite side of the Earth!)</div>
-        <div id="altitudeB">---</div>
-      </div>
-
-      <div class="title-text upside-down"><a href="https://en.wikipedia.org/wiki/Antipodes">ANTIPODES</a></div>
-      <div class="title-text"><a href="https://en.wikipedia.org/wiki/Antipodes">ANTIPODES</a></div>
-
-      <div class="bottom-left-panel">
-        <div id="altitudeA">---</div>
+      <div class="top-left-panel">
         <div class="a-bit-smaller">
           &larr; INTERACT OVER HERE
         </div>
+        <div id="altitudeA">---</div>
       </div>
+
+      <div>
+        <div class="title-text upside-down"><a href="https://en.wikipedia.org/wiki/Antipodes">ANTIPODES</a></div>
+        <div class="title-text"><a href="https://en.wikipedia.org/wiki/Antipodes">ANTIPODES</a></div>
+      </div>
+
+      <div class="bottom-right-panel">
+        <div class="a-bit-smaller">THEN LOOK DOWN HERE &darr;</div>
+        <div class="a-bit-smaller-2x">(that's the opposite side of the Earth!)</div>
+        <div id="altitudeB">---</div>
+      </div>
+    </div>
+
+    <div class="panel minor">
+      <div id="sceneViewDivB"></div>
     </div>
   </span>
 
