@@ -37,7 +37,7 @@
       "esri/geometry/support/webMercatorUtils",
       "esri/Graphic"
     ], function (
-      Map,
+      EsriMap,
       MapView,
       BaseLayerView2D,
       GraphicsLayer,
@@ -163,7 +163,7 @@
       // add the custom layer instance to the map
       const view = new MapView({
         container: "viewDiv",
-        map: new Map({
+        map: new EsriMap({
           basemap: "gray-vector",
           layers: [customLayerInstance]
         }),
