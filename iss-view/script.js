@@ -36,6 +36,27 @@ require([
     // ground: 'world-elevation'
   });
 
+  var locatorView = new SceneView({
+    container: 'locatorViewNode',
+    map: map,
+    environment: {
+      lighting: {
+        date: Date.now(),
+        cameraTrackingEnabled: false
+      }
+    },
+    ui: {
+      components: []
+    },
+    navigation: {
+      browserTouchPanEnabled: false,
+      mouseWheelZoomEnabled: false,
+      gamepad: {
+        enabled: false
+      }
+    }
+  });
+
   var view = new SceneView({
     container: 'viewNode',
     map: map,
@@ -73,6 +94,47 @@ require([
   view.when(function (view) {
     startupMappingComponents(view);
     disableZooming(view);
+
+    disableZooming(locatorView);
+    locatorView.graphics.add({
+      geometry: {
+        type: 'polygon',
+        rings: [
+          [
+            [view.center.longitude, view.center.latitude],
+            [0, 0],
+            [20, 20],
+            [view.center.longitude, view.center.latitude]
+          ]
+        ]
+      },
+      symbol: {
+        type: 'simple-fill',
+        color: [255, 0, 255, 0.5],
+        style: 'solid',
+        outline: {
+          color: 'magenta',
+          width: '5px'
+        }
+      }
+    });
+    view.watch('center', function (centerValue) {
+      var newlocatorViewCenter = locatorView.center.clone();
+      newlocatorViewCenter.longitude = centerValue.longitude;
+      locatorView.center = newlocatorViewCenter;
+
+      var locatorGraphic = locatorView.graphics.getItemAt(0);
+      var newGeometry = locatorGraphic.geometry.clone();
+      newGeometry.rings = [
+        [
+          [view.center.longitude, view.center.latitude],
+          [0, 0],
+          [20, 20],
+          [view.center.longitude, view.center.latitude]
+        ]
+      ];
+      locatorGraphic.geometry = newGeometry;
+    });
   });
 
   function startupMappingComponents(view) {
@@ -223,8 +285,7 @@ require([
     console.error(err);
     infoMessageNode.innerHTML =
       '<div>It seems that we\'ve misplaced the space station.</div>' +
-      '<div>We\'ll try to look again in a minute or two.</div>' +
-      '<div>Go click on something else.</div>';
+      '<div>We\'ll try to look again in a minute or two.</div>'
     infoMessageNode.style.display = 'flex';
     setTimeout(function () {
       infoMessageNode.style.display = 'none';
