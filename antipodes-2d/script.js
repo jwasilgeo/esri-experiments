@@ -19,7 +19,7 @@ require([
   var longLatAntipode = [180 + longLatTop[0], -longLatTop[1]]; // antipode map view start location
   var scale = 100000000;
   var countriesUrl = 'https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/World_Countries_(Generalized)/FeatureServer/0';
-  var countriesOutFields = ['Country'];
+  var countriesOutFields = ['COUNTRY'];
 
   mapViewTop = new MapView({
     container: 'viewDivTop',
@@ -116,7 +116,7 @@ require([
       }).then(function(response) {
         var topCountry = 'OCEAN'; // default value if there is no country under the mouse
         if (response.results.length && response.results[0].graphic) {
-          topCountry = response.results[0].graphic.attributes.Country.toUpperCase();
+          topCountry = response.results[0].graphic.attributes.COUNTRY?.toUpperCase();
         }
         antipodeInfo.children[0].innerText = topCountry;
       });
@@ -135,7 +135,7 @@ require([
       antipodeCountryLayerView.featuresView.graphics.some(function(graphic) {
         // point-in-polygon check with client-side country geometries
         if (graphic.geometry.contains(antipodePoint)) {
-          antipodeCountry = graphic.attributes.Country.toUpperCase();
+          antipodeCountry = graphic.attributes.COUNTRY?.toUpperCase();
           return true;
         } else {
           return false;
