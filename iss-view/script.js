@@ -167,7 +167,7 @@ require([
             addDaylightToggle(view);
             addAstroPhotosToggle(view);
 
-            addCustomBasemap(view);
+            // addCustomBasemap(view);
           });
       }
     }
