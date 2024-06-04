@@ -1,6 +1,4 @@
 require([
-  'dojo/request/script',
-
   'esri/Basemap',
   'esri/geometry/Circle',
   'esri/layers/WebTileLayer',
@@ -12,7 +10,6 @@ require([
 
   'dojo/domReady!'
 ], function (
-  dojoRequestScript,
   Basemap, Circle, WebTileLayer, Map, QueryTask, Query, SceneView, BasemapToggle
 ) {
   var previousCoordinates;
@@ -23,8 +20,7 @@ require([
   var creditsNode = document.getElementById('creditsNode');
   var infoMessageNode = document.getElementById('infoMessageNode');
 
-  // var issLocationUrl = 'http://api.open-notify.org/iss-now.json';
-  var issLocationUrl = 'https://open-notify-api.herokuapp.com/iss-now.json';
+  var issLocationUrl = 'https://api.wheretheiss.at/v1/satellites/25544';
 
   // var firstUpdateDelay = 3000;
   var firstCameraViewChangeDuration = 3000;
@@ -143,24 +139,23 @@ require([
   }
 
   function establishIssLocation() {
-    dojoRequestScript.get(issLocationUrl, {
-      jsonp: 'callback'
-    }).then(establishIssLocationSuccess, establishIssLocationError);
+    fetch(issLocationUrl).then(establishIssLocationSuccess, establishIssLocationError);
   }
 
-  function establishIssLocationSuccess(res) {
+  async function establishIssLocationSuccess(response) {
     // get two initial locations to be able to determine the heading
-    if (res.message === 'success') {
+    if (response.ok) {
+      const res = await response.json();
       if (!previousCoordinates) {
         previousCoordinates = {
-          latitude: res.iss_position.latitude,
-          longitude: res.iss_position.longitude
+          latitude: res.latitude,
+          longitude: res.longitude
         };
         setTimeout(establishIssLocation, 1000);
       } else {
         updateCameraPosition({
-          latitude: res.iss_position.latitude,
-          longitude: res.iss_position.longitude
+          latitude: res.latitude,
+          longitude: res.longitude
         }, firstCameraViewChangeDuration)
           .then(function () {
             getCurrentIssLocation();
@@ -197,9 +192,7 @@ require([
   }
 
   function getCurrentIssLocation() {
-    dojoRequestScript.get(issLocationUrl, {
-      jsonp: 'callback'
-    }).then(getCurrentIssLocationSuccess, getCurrentIssLocationError);
+    fetch(issLocationUrl).then(getCurrentIssLocationSuccess, getCurrentIssLocationError)
   }
 
   function getCurrentIssLocationSuccess(res) {
@@ -208,8 +201,8 @@ require([
       infoMessageNode.style.display = 'none';
 
       updateCameraPosition({
-        latitude: res.iss_position.latitude,
-        longitude: res.iss_position.longitude
+        latitude: res.latitude,
+        longitude: res.longitude
       }, cameraViewChangeDuration);
 
       // update the location after a delay (continue indefinitely from here)
