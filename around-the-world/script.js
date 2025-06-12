@@ -4,7 +4,6 @@ require([
   'esri/geometry/Polyline',
   'esri/Graphic',
   'esri/layers/GraphicsLayer',
-  'esri/layers/WebTileLayer',
   'esri/Map',
 
   'esri/symbols/ObjectSymbol3DLayer',
@@ -17,7 +16,7 @@ require([
 
   'esri/widgets/Locate'
 ], function(
-  geodesicUtils, Point, Polyline, Graphic, GraphicsLayer, WebTileLayer, Map,
+  geodesicUtils, Point, Polyline, Graphic, GraphicsLayer, Map,
   ObjectSymbol3DLayer, PointSymbol3D, SimpleLineSymbol, SimpleMarkerSymbol,
   MapView, SceneView,
   Locate
@@ -79,22 +78,6 @@ require([
   var analysisGraphicsLayer2D = new GraphicsLayer();
   var analysisGraphicsLayer3D = new GraphicsLayer();
 
-  var basemap = {
-    baseLayers: [
-      // use Stamen Toner for the basemap tiles
-      new WebTileLayer({
-        urlTemplate: 'https://stamen-tiles-{subDomain}.a.ssl.fastly.net/toner/{level}/{col}/{row}.png',
-        subDomains: ['a', 'b', 'c', 'd'],
-        copyright: [
-          'Map tiles by <a href="https://stamen.com/">Stamen Design</a>, ',
-          'under <a href="https://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. ',
-          'Data by <a href="https://openstreetmap.org">OpenStreetMap</a>, ',
-          'under <a href="https://www.openstreetmap.org/copyright">ODbL</a>.'
-        ].join('')
-      })
-    ]
-  };
-
   var mapView = new MapView({
     container: 'mapViewDiv',
     map: new Map({
@@ -113,7 +96,7 @@ require([
   var sceneView = new SceneView({
     container: 'sceneViewDiv',
     map: new Map({
-      basemap: basemap,
+      basemap: 'gray,
       layers: [
         analysisGraphicsLayer3D
       ]
