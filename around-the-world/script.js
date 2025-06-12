@@ -96,7 +96,7 @@ require([
   var sceneView = new SceneView({
     container: 'sceneViewDiv',
     map: new Map({
-      basemap: 'gray,
+      basemap: 'gray',
       layers: [
         analysisGraphicsLayer3D
       ]
