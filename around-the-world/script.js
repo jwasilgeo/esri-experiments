@@ -136,8 +136,7 @@ require([
     });
 
     sceneView.environment.atmosphere.quality = 'high';
-    sceneView.map.ground.opacity = 0.55;
-    sceneView.map.ground.layers.removeAll();
+    sceneView.map.ground.opacity = 0.8;
 
     // position and show the credits element and rotate control element
     sceneView.ui.add(creditsNode, 'bottom-right');
