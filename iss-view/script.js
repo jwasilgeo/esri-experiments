@@ -216,19 +216,33 @@ require([
   }
 
   function disableZooming(view) {
+    // stops propagation of default behavior when an event fires
     function stopEvtPropagation(event) {
       event.stopPropagation();
     }
 
+    // disable mouse wheel scroll zooming on the view
     view.on('mouse-wheel', stopEvtPropagation);
+
     view.on('pointer-down', stopEvtPropagation);
     view.on('pointer-move', stopEvtPropagation);
     view.on('hold', stopEvtPropagation);
+
+    // disable zooming via double-click on the view
     view.on('double-click', stopEvtPropagation);
+
+    // disable zooming out via double-click + Control on the view
     view.on('double-click', ['Control'], stopEvtPropagation);
+
+    // disables pinch-zoom and panning on the view
     view.on('drag', stopEvtPropagation);
+
+    // disable the view's zoom box to prevent the Shift + drag
+    // and Shift + Control + drag zoom gestures.
     view.on('drag', ['Shift'], stopEvtPropagation);
     view.on('drag', ['Shift', 'Control'], stopEvtPropagation);
+
+    // prevent any keyboard interaction (zooming and panning)
     view.on('key-down', stopEvtPropagation);
   }
 });
