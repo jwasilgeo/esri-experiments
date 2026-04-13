@@ -1,40 +1,32 @@
 require([
-  'esri/Basemap',
-  'esri/geometry/Circle',
-  'esri/layers/WebTileLayer',
   'esri/Map',
-  'esri/tasks/QueryTask',
-  'esri/tasks/support/Query',
   'esri/views/SceneView',
-  'esri/widgets/BasemapToggle',
+  'esri/widgets/BasemapToggle'
+], function (Map, SceneView, BasemapToggle) {
+  let previousCoordinates;
+  let currentIssCoordinates;
+  let currentIssHeading = 0;
 
-  'dojo/domReady!'
-], function (
-  Basemap, Circle, WebTileLayer, Map, QueryTask, Query, SceneView, BasemapToggle
-) {
-  var previousCoordinates;
+  const creditsNode = document.getElementById('creditsNode');
+  const infoMessageNode = document.getElementById('infoMessageNode');
+  const fallbackBgNode = document.getElementById('fallbackBg');
+  const issLocatorIconEl = document.getElementById('issLocatorIcon');
+  const issLocatorArrowEl = document.getElementById('issLocatorArrow');
 
-  var astroPhotosToggle = document.getElementById('astroPhotosToggle');
-  var photosParentNode = document.getElementById('photosParentNode');
-  var photosNode = document.getElementById('photosNode');
-  var creditsNode = document.getElementById('creditsNode');
-  var infoMessageNode = document.getElementById('infoMessageNode');
+  const issLocationUrl = 'https://api.wheretheiss.at/v1/satellites/25544';
 
-  var issLocationUrl = 'https://api.wheretheiss.at/v1/satellites/25544';
+  const firstCameraViewChangeDuration = 3000;
+  const updateDelay = 10000;
+  const cameraViewChangeDuration = updateDelay;
 
-  // var firstUpdateDelay = 3000;
-  var firstCameraViewChangeDuration = 3000;
-  var updateDelay = 10000;
-  var cameraViewChangeDuration = updateDelay * 2;
+  const DEG_TO_RAD = Math.PI / 180;
+  const LOCATOR_ALTITUDE = 7000000; // meters
+  const MAIN_ALTITUDE = 550000;     // meters
+  const ARROW_OFFSET = 38;          // pixels from icon center
 
-  var map = new Map({
-    basemap: 'satellite',
-    // ground: 'world-elevation'
-  });
-
-  var view = new SceneView({
+  const view = new SceneView({
     container: 'viewNode',
-    map: map,
+    map: new Map({ basemap: 'satellite' }),
     center: [0, 0],
     zoom: -5,
     environment: {
@@ -66,74 +58,58 @@ require([
   view.ui.add('creditsNode', 'bottom-right');
   creditsNode.style.display = 'flex';
 
-  view.when(function (view) {
-    startupMappingComponents(view);
-    disableZooming(view);
+  view.ui.add('locatorMapNode', 'top-right');
+
+  const locatorView = new SceneView({
+    container: 'locatorMapNode',
+    map: new Map({ basemap: 'satellite' }),
+    camera: { position: { x: 0, y: 0, z: LOCATOR_ALTITUDE }, tilt: 0, heading: 0 },
+    ui: { components: [] }
   });
 
-  function startupMappingComponents(view) {
+  locatorView.watch('camera', updateLocatorIconPosition);
+
+  function updateLocatorIconPosition() {
+    if (!currentIssCoordinates || !locatorView.ready) return;
+    const screenPoint = locatorView.toScreen({
+      type: 'point',
+      latitude: currentIssCoordinates.latitude,
+      longitude: currentIssCoordinates.longitude,
+      spatialReference: { wkid: 4326 }
+    });
+    if (screenPoint) {
+      issLocatorIconEl.style.left = `${screenPoint.x}px`;
+      issLocatorIconEl.style.top = `${screenPoint.y}px`;
+
+      const headingRad = currentIssHeading * DEG_TO_RAD;
+      issLocatorArrowEl.style.left = `${screenPoint.x + Math.sin(headingRad) * ARROW_OFFSET}px`;
+      issLocatorArrowEl.style.top = `${screenPoint.y - Math.cos(headingRad) * ARROW_OFFSET}px`;
+    }
+  }
+
+  view.when(function (view) {
+    if (new URLSearchParams(location.search).has('qa-error')) {
+      establishIssLocationError(new Error('QA error mode'));
+      return;
+    }
+
     infoMessageNode.innerHTML = '<div>We\'re looking around for the space station. Hold on!</div><img src="./favicon.ico" width="80" alt="International Space Station icon" style="animation: 2s rotate-station-icon infinite linear; filter: brightness(500%);">';
     infoMessageNode.style.display = 'flex';
 
     establishIssLocation();
+    disableZooming(view);
+  });
+
+  function hideInfoMessage() {
+    infoMessageNode.innerHTML = '';
+    infoMessageNode.style.display = 'none';
   }
 
-  function addAstroPhotosToggle(view) {
-    // view.ui.add('astroPhotosToggle', 'top-right');
-    view.ui.add('photosParentNode', 'top-right');
-    astroPhotosToggle.style.display = 'flex';
-    photosParentNode.style.display = 'none';
-
-    astroPhotosToggle.addEventListener('click', function () {
-      if (photosParentNode.style.display === 'none') {
-        photosParentNode.style.display = 'block';
-        getPhotos(view.extent.center);
-      } else {
-        photosParentNode.style.display = 'none';
-      }
-    });
-  }
-
-  function addDaylightToggle(view) {
-    // view.ui.add('daylightToggle', 'top-right');
-    var daylightToggle = document.getElementById('daylightToggle');
-    daylightToggle.style.display = 'flex';
-
-    var timeAtCreation = view.environment.lighting.clone().date;
-    daylightToggle.addEventListener('click', function () {
-      if (view.environment.lighting.date.getTime() === timeAtCreation.getTime()) {
-        view.environment.lighting.date = timeAtCreation.getTime() + (12 * 3.6e+6);
-      } else {
-        view.environment.lighting.date = timeAtCreation;
-      }
-    });
-  }
-
-  function addCustomBasemap(view) {
-    var stamenBasemap = new Basemap({
-      baseLayers: [
-        new WebTileLayer({
-          urlTemplate: 'https://stamen-tiles-{subDomain}.a.ssl.fastly.net/toner/{level}/{col}/{row}.png',
-          subDomains: ['a', 'b', 'c', 'd'],
-          copyright: [
-            'Map tiles by <a href="https://stamen.com">Stamen Design</a>, ',
-            'under <a href="https://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. ',
-            'Data by <a href="https://openstreetmap.org">OpenStreetMap</a>, ',
-            'under <a href="https://www.openstreetmap.org/copyright">ODbL</a>.'
-          ].join('')
-        })
-      ],
-      title: 'Toner',
-      id: 'toner',
-      thumbnailUrl: 'https://stamen-tiles.a.ssl.fastly.net/toner/10/177/409.png'
-    });
-
-    var basemapToggle = new BasemapToggle({
-      view: view,
-      nextBasemap: stamenBasemap,
-      visibleElements: {
-        title: false
-      }
+  function addCustomBasemap() {
+    const basemapToggle = new BasemapToggle({
+      view,
+      nextBasemap: 'osm',
+      visibleElements: { title: false }
     });
     view.ui.add(basemapToggle, 'bottom-left');
   }
@@ -144,72 +120,54 @@ require([
 
   async function establishIssLocationSuccess(response) {
     // get two initial locations to be able to determine the heading
-    if (response.ok) {
-      const res = await response.json();
-      if (!previousCoordinates) {
-        previousCoordinates = {
-          latitude: res.latitude,
-          longitude: res.longitude
-        };
-        setTimeout(establishIssLocation, 1000);
-      } else {
-        updateCameraPosition({
-          latitude: res.latitude,
-          longitude: res.longitude
-        }, firstCameraViewChangeDuration)
-          .then(function () {
-            getCurrentIssLocation();
-
-            infoMessageNode.innerHTML = '';
-            infoMessageNode.style.display = 'none';
-
-            view.ui.add('smallButtonsControl', 'top-right');
-            addDaylightToggle(view);
-            addAstroPhotosToggle(view);
-
-            // addCustomBasemap(view);
-          });
-      }
+    if (!response.ok) return;
+    const res = await response.json();
+    if (!previousCoordinates) {
+      previousCoordinates = { latitude: res.latitude, longitude: res.longitude };
+      setTimeout(establishIssLocation, 1000);
+    } else {
+      updateCameraPosition({ latitude: res.latitude, longitude: res.longitude }, firstCameraViewChangeDuration)
+        .then(afterInitialPosition, afterInitialPosition);
     }
+  }
+
+  function afterInitialPosition() {
+    getCurrentIssLocation();
+    hideInfoMessage();
+    addCustomBasemap();
+    document.getElementById('locatorMapNode').style.opacity = 1;
+    issLocatorIconEl.style.display = 'block';
+    issLocatorArrowEl.style.display = 'block';
   }
 
   function establishIssLocationError(err) {
     console.error(err);
+    fallbackBgNode.style.display = 'block';
     infoMessageNode.innerHTML = 'We had trouble finding out where the space station is right now. Please try later.';
     infoMessageNode.style.display = 'flex';
 
     setTimeout(function () {
-      infoMessageNode.innerHTML = '';
-      infoMessageNode.style.display = 'none';
-
-      previousCoordinates = {
-        latitude: 0,
-        longitude: 0
-      };
-
+      fallbackBgNode.style.display = 'none';
+      hideInfoMessage();
+      previousCoordinates = { latitude: 0, longitude: 0 };
       updateCameraPosition(previousCoordinates, 1000);
     }, 6000);
   }
 
   function getCurrentIssLocation() {
-    fetch(issLocationUrl).then(getCurrentIssLocationSuccess, getCurrentIssLocationError)
+    fetch(issLocationUrl).then(getCurrentIssLocationSuccess, getCurrentIssLocationError);
   }
 
-  function getCurrentIssLocationSuccess(res) {
-    if (res.message === 'success') {
-      infoMessageNode.innerHTML = '';
-      infoMessageNode.style.display = 'none';
-
-      updateCameraPosition({
-        latitude: res.latitude,
-        longitude: res.longitude
-      }, cameraViewChangeDuration);
-
-      // update the location after a delay (continue indefinitely from here)
-      setTimeout(function () {
-        getCurrentIssLocation();
-      }, updateDelay);
+  function getCurrentIssLocationSuccess(response) {
+    if (!response.ok) {
+      getCurrentIssLocationError(new Error(`HTTP ${response.status}`));
+      return;
     }
+    response.json().then(function (res) {
+      hideInfoMessage();
+      updateCameraPosition({ latitude: res.latitude, longitude: res.longitude }, cameraViewChangeDuration);
+      setTimeout(getCurrentIssLocation, updateDelay);
+    });
   }
 
   function getCurrentIssLocationError(err) {
@@ -219,133 +177,58 @@ require([
       '<div>We\'ll try to look again in a minute or two.</div>' +
       '<div>Go click on something else.</div>';
     infoMessageNode.style.display = 'flex';
-    setTimeout(function () {
-      infoMessageNode.style.display = 'none';
-    }, 15000);
+    setTimeout(() => { infoMessageNode.style.display = 'none'; }, 15000);
     setTimeout(getCurrentIssLocation, 60000);
   }
 
-  function updateCameraPosition(nextCoordinates, cameraViewChangeDuration) {
-    var heading = calculateGeodesyMethod(previousCoordinates, nextCoordinates, 'bearingTo');
-    previousCoordinates = nextCoordinates;
+  function updateCameraPosition(nextCoordinates, duration) {
+    const a = new LatLon(previousCoordinates.latitude, previousCoordinates.longitude);
+    const b = new LatLon(nextCoordinates.latitude, nextCoordinates.longitude);
+    const heading = a.bearingTo(b);
 
-    // getPhotos(view.extent.center);
-    getPhotos([nextCoordinates.longitude, nextCoordinates.latitude]);
+    previousCoordinates = nextCoordinates;
+    currentIssCoordinates = nextCoordinates;
+    currentIssHeading = heading;
+
+    issLocatorIconEl.style.transform = `rotate(${heading}deg)`;
+    issLocatorArrowEl.style.transform = `rotate(${heading}deg)`;
+
+    locatorView.goTo({
+      position: { longitude: nextCoordinates.longitude, latitude: nextCoordinates.latitude, z: LOCATOR_ALTITUDE },
+      tilt: 0,
+      heading: 0
+    }, { duration, easing: 'linear' });
 
     return view.goTo({
       position: {
         latitude: nextCoordinates.latitude,
         longitude: nextCoordinates.longitude,
-        z: 412500 // altitude in meters
+        z: MAIN_ALTITUDE
       },
       tilt: 60,
-      heading: heading
+      heading
     }, {
       speedFactor: 1,
-      duration: cameraViewChangeDuration,
+      duration,
       maxDuration: 60000,
       easing: 'linear'
     });
   }
 
-  function getPhotos(centerPoint) {
-    if (photosParentNode.style.display === 'none' || photosParentNode.style.display === '') {
-      return;
-    }
-
-    var searchGeometry = new Circle({
-      center: centerPoint,
-      radius: 100,
-      radiusUnit: 'kilometers',
-      geodesic: true
-    });
-
-    var query = new Query();
-    query.geometry = searchGeometry;
-    query.returnGeometry = false;
-    query.outFields = ['missionRollFrame', 'mission', 'roll', 'frame'];
-
-    var queryTask = new QueryTask({
-      url: 'https://services2.arcgis.com/gLefH1ihsr75gzHY/arcgis/rest/services/ISSPhotoLocations_20_34/FeatureServer/0',
-    });
-
-    queryTask.execute(query).then(function (results) {
-      while (photosNode.hasChildNodes()) {
-        photosNode.removeChild(photosNode.firstChild);
-      }
-
-      var docFragment = document.createDocumentFragment();
-
-      results.features.slice(0, 25).forEach(function (feature) {
-        var div = document.createElement('div');
-        var a = document.createElement('a');
-        a.href = 'https://eol.jsc.nasa.gov/SearchPhotos/photo.pl?mission=' + feature.attributes.mission + '&roll=' + feature.attributes.roll + '&frame=' + feature.attributes.frame;
-        a.target = '_blank';
-
-        var img = document.createElement('img');
-        img.width = '150';
-        img.src = 'https://eol.jsc.nasa.gov/DatabaseImages/ESC/small/' + feature.attributes.mission + '/' + feature.attributes.missionRollFrame + '.JPG';
-        img.title = 'NASA Johnson Space Center';
-
-        a.appendChild(img);
-        div.appendChild(a);
-        docFragment.appendChild(div);
-      });
-
-      if (results.features.length) {
-        photosNode.appendChild(docFragment);
-      } else {
-        photosNode.innerHTML = 'No photos found here.';
-      }
-    });
-  }
-
-  // github.com/chrisveness/geodesy
-  function calculateGeodesyMethod(esriPointA, esriPointB, geodesyMethodName) {
-    var geodesyPointA = new LatLon(esriPointA.latitude, esriPointA.longitude);
-    var geodesyPointB = new LatLon(esriPointB.latitude, esriPointB.longitude);
-    return geodesyPointA[geodesyMethodName](geodesyPointB);
-  }
-
   function disableZooming(view) {
-    // stops propagation of default behavior when an event fires
     function stopEvtPropagation(event) {
       event.stopPropagation();
     }
 
-    // disable mouse wheel scroll zooming on the view
     view.on('mouse-wheel', stopEvtPropagation);
-
     view.on('pointer-down', stopEvtPropagation);
     view.on('pointer-move', stopEvtPropagation);
     view.on('hold', stopEvtPropagation);
-
-    // disable zooming via double-click on the view
     view.on('double-click', stopEvtPropagation);
-
-    // disable zooming out via double-click + Control on the view
     view.on('double-click', ['Control'], stopEvtPropagation);
-
-    // disables pinch-zoom and panning on the view
     view.on('drag', stopEvtPropagation);
-
-    // disable the view's zoom box to prevent the Shift + drag
-    // and Shift + Control + drag zoom gestures.
     view.on('drag', ['Shift'], stopEvtPropagation);
     view.on('drag', ['Shift', 'Control'], stopEvtPropagation);
-
-    // prevent any keyboard interaction (zooming and panning)
-    view.on('key-down', function (event) {
-      // prevents zooming with the + and - keys
-      // var prohibitedKeys = ['+', '-', 'Shift', '_', '='];
-      // var keyPressed = event.key;
-      // if (prohibitedKeys.indexOf(keyPressed) !== -1) {
-      //  stopEvtPropagation();
-      // }
-
-      stopEvtPropagation(event);
-    });
-
-    return view;
+    view.on('key-down', stopEvtPropagation);
   }
 });
